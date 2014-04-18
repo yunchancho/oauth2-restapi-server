@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+<head>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+
+    <!-- font awesome css -->
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <h1> My Profile </h1>
+    <a href="/auth/logout" class="btn btn-default btn-sm">Logout</a>
+
+    <!-- local account -->
+    <hr>
+    <h3><span class="fa fa-user"></span> Local Account</h3>
+    <% if (user.local.email) { %>
+    <p>
+        <strong>id</strong>: <%= user._id %><br>
+        <strong>email</strong>: <%= user.local.email %><br>
+        <strong>password</strong>: <%= user.local.password %>
+    </p>
+    <% } %>
+    <div class="btn-group">
+    <% if (user.local.email) { %>
+        <a href="/auth/disconnect/local" class="btn btn-default">Disconnect with local account</a>
+    <% } else { %>
+        <a href="/auth/connect/local" class="btn btn-default">Connect with local account</a>
+    <% } %>
+    </div>
+
+    <!-- twitter account -->
+    <hr>
+    <h3><span class="fa fa-user"></span> Twitter Account</h3>
+    <% if (user.twitter.token) { %>
+    <p>
+        <strong>id</strong>: <%= user.twitter.id %><br>
+        <strong>token</strong>: <%= user.twitter.token %><br>
+        <strong>tokenSecret</strong>: <%= user.twitter.tokenSecret %><br>
+        <strong>display name</strong>: <%= user.twitter.displayName %><br>
+        <strong>photo</strong>: <img src=<%= user.twitter.photo %> />
+    </p>
+    <% } %>
+    <div class="btn-group">
+        <a class='btn btn-info disabled'><i class="fa fa-twitter" style="width:16px; height:17px"></i></a>
+    <% if (user.twitter.token) { %>
+        <a class='btn btn-info ' href='/auth/disconnect/twitter' style="width:12em"> Disconnect with Twitter</a>
+    <% } else { %>
+        <a class='btn btn-info ' href='/auth/connect/twitter' style="width:12em"> Connect with Twitter</a>
+    <% } %>
+    </div>
+
+    <!-- facebook account -->
+    <hr>
+    <h3><span class="fa fa-user"></span> Facebook Account</h3>
+    <% if (user.facebook.token) { %>
+    <p>
+        <strong>id</strong>: <%= user.facebook.id %><br>
+        <strong>token</strong>: <%= user.facebook.token %><br>
+        <strong>refresh token</strong>: <%= user.facebook.refreshToken %><br>
+        <strong>display name</strong>: <%= user.facebook.displayName %><br>
+        <strong>email</strong>: <%= user.facebook.email %><br>
+    </p>
+    <% } %>
+    <div class="btn-group">
+        <a class='btn btn-primary disabled'><i class="fa fa-facebook" style="width:16px; height:17px"></i></a>
+    <% if (user.facebook.token) { %>
+        <a class='btn btn-primary ' href='/auth/disconnect/facebook' style="width:12em"> Disconnect with Facebook</a>
+    <% } else { %>
+        <a class='btn btn-primary ' href='/auth/connect/facebook' style="width:12em"> Connect with Facebook</a>
+    <% } %>
+    </div>
+
+    <!-- google+ account -->
+    <hr>
+    <h3><span class="fa fa-user"></span> Google+ Account</h3>
+    <% if (user.google.token) { %>
+    <p>
+        <strong>id</strong>: <%= user.google.id %><br>
+        <strong>token</strong>: <%= user.google.token %><br>
+        <strong>refresh token</strong>: <%= user.google.refreshToken %><br>
+        <strong>display name</strong>: <%= user.google.displayName %><br>
+        <strong>email</strong>: <%= user.google.email %><br>
+        <strong>photo</strong>: <img width=175 height=175 src=<%= user.google.photo %> />
+    </p>
+    <% } %>
+    <div class="btn-group">
+        <a class='btn btn-danger disabled'><i class="fa fa-google-plus" style="width:16px; height:17px"></i></a>
+    <% if (user.google.token) { %>
+        <a class='btn btn-danger ' href='/auth/disconnect/google' style="width:12em"> Disconnect with Google+</a>
+    <% } else { %>
+        <a class='btn btn-danger ' href='/auth/connect/google' style="width:12em"> Connect with Google+</a>
+    <% } %>
+    </div>
+    <br /><br />
+</div>
+</body>
+</html>
