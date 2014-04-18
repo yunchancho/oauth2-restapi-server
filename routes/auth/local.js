@@ -1,12 +1,13 @@
+var passport = require('passport');
 var Strategy = require('passport-local').Strategy;
 var User = require(__appbase_dirname + '/models/model-user');
 
-var initialize = function (router, passport) {
-    setPassportStrategy(passport);
-    setRouter(router, passport);
+var initialize = function (router) {
+    setPassportStrategy();
+    setRouter(router);
 };
 
-var setRouter = function (router, passport) {
+var setRouter = function (router) {
     router.get('/auth', function (req, res) {
         res.redirect('/auth/login');
     });
@@ -75,7 +76,7 @@ var setRouter = function (router, passport) {
     }));
 }
 
-var setPassportStrategy = function (passport) {
+var setPassportStrategy = function () {
     // set login strategy
     passport.use('local-login', new Strategy({
         usernameField: 'email',

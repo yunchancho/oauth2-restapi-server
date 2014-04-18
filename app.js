@@ -35,7 +35,7 @@ app.use(passport.session());
 app.use(connectFlash());
 
 // add middleware for authentication
-database();
-router(app, passport);
+database.initialize();
+router.initialize(app);
 
 module.exports = app;

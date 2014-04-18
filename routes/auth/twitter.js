@@ -1,14 +1,14 @@
-var fs = require('fs');
+var passport = require('passport');
 var Strategy = require('passport-twitter').Strategy;
 var User = require(__appbase_dirname + '/models/model-user');
 var twitterInfo = require(__appbase_dirname + '/routes/oauth-info').twitter;
 
-var initialize = function (router, passport) {
-    setPassportStrategy(passport);
-    setRouter(router, passport);
+var initialize = function (router) {
+    setPassportStrategy();
+    setRouter(router);
 };
 
-var setRouter = function (router, passport) {
+var setRouter = function (router) {
     // login (authenticate)
     router.get('/auth/login/twitter',
             passport.authenticate('twitter', {
@@ -62,7 +62,7 @@ var setRouter = function (router, passport) {
     });
 };
 
-var setPassportStrategy = function (passport) {
+var setPassportStrategy = function () {
     passport.use(new Strategy({
         consumerKey: twitterInfo.consumerKey,
         consumerSecret: twitterInfo.consumerSecret,

@@ -1,13 +1,14 @@
+var passport = require('passport');
 var Strategy = require('passport-google-oauth').OAuth2Strategy;
 var User = require(__appbase_dirname + '/models/model-user');
 var googleInfo = require(__appbase_dirname + '/routes/oauth-info').google;
 
-var initialize = function (router, passport) {
-    setPassportStrategy(passport);
-    setRouter(router, passport);
+var initialize = function (router) {
+    setPassportStrategy();
+    setRouter(router);
 };
 
-var setRouter = function (router, passport) {
+var setRouter = function (router) {
     // login (authenticate)
     router.get('/auth/login/google',
             passport.authenticate('google', {
@@ -50,7 +51,7 @@ var setRouter = function (router, passport) {
     });
 };
 
-var setPassportStrategy = function (passport) {
+var setPassportStrategy = function () {
     passport.use(new Strategy({
         clientID: googleInfo.clientId,
         clientSecret: googleInfo.clientSecret,
@@ -58,9 +59,6 @@ var setPassportStrategy = function (passport) {
         passReqToCallback: true
     }, function (req, token, refreshToken, profile, done) {
         // TODO How about using process.nextTick() for code below
-        console.log('-------------');
-        console.log(profile);
-        console.log('-------------');
         User.findOne({ 'google.id' : profile.id },
             function (err, user) {
                 if (err) {

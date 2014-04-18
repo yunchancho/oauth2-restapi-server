@@ -1,6 +1,8 @@
 var mongoose = require('mongoose');
 var dbUrl = 'mongodb://localhost/sociallogin';
 
-module.exports = function () {
+var initialize = function () {
     mongoose.connect(dbUrl);
 };
+
+module.exports.initialize = initialize;

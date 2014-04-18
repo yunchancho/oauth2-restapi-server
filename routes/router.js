@@ -1,17 +1,12 @@
 var express = require('express');
+var passport = require('passport');
 var User = require(__appbase_dirname + '/models/model-user');
 
-var initialize = function (app, passport) {
+var initialize = function (app) {
     setRootRoutes(app);
+    setAuthRoutes(app);
 
-    // add router for /auth route
-    //var router = express.Router();
-    //app.use('/auth', router);
-    setAuthRoutes(app, passport);
-
-    // add routers for other resources
-    //app.use('/user', app.Router());
-    //app.use('/something', app.Router());
+    //TODO add additional router if you need
 };
 
 var setRootRoutes = function (router) {
@@ -24,7 +19,7 @@ var setRootRoutes = function (router) {
     });
 };
 
-var setAuthRoutes = function (router, passport) {
+var setAuthRoutes = function (router) {
 
     // initialize passport 
     passport.serializeUser(function (user, done) {
@@ -39,10 +34,10 @@ var setAuthRoutes = function (router, passport) {
         });
     });
 
-    require('./auth/local')(router, passport);
-    require('./auth/twitter')(router, passport);
-    require('./auth/facebook')(router, passport);
-    require('./auth/google')(router, passport);
+    require('./auth/local')(router);
+    require('./auth/twitter')(router);
+    require('./auth/facebook')(router);
+    require('./auth/google')(router);
     //require('./auth/yahoo')(router, passport);
     //require('./auth/linkedin')(router, passport);
     //require('./auth/github')(router, passport);
@@ -55,4 +50,4 @@ var isLogined = function (req, res, next) {
     res.redirect('/auth/login');
 };
 
-module.exports = initialize;
+module.exports.initialize = initialize;
