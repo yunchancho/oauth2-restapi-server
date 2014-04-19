@@ -24,5 +24,10 @@ module.exports = {
         'apiKey' : '75f1jqibs20qic',
         'secretKey' : 'QnshYouvAXlU2r1Y',
         'callbackURL' : 'http://ec2-54-199-141-31.ap-northeast-1.compute.amazonaws.com:3000/auth/login/linkedin/callback'
+    },
+    'github' : {
+        'clientId' : 'e6b52d1ff976d4dc54d0',
+        'clientSecret' : 'c1b5856f1c5bfcc7889c22ed4c2b0341c47dc2b5',
+        'callbackURL' : 'http://ec2-54-199-141-31.ap-northeast-1.compute.amazonaws.com:3000/auth/login/github/callback'
     }
 };

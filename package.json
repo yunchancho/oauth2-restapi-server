@@ -21,6 +21,7 @@
     "passport-google-oauth" : "*",
     "passport-yahoo-oauth" : "*",
     "passport-linkedin-oauth2" : "*",
+    "passport-github" : "*",
     "connect-flash" : "*", 	
     "bcrypt-nodejs" : "*", 
     "mongoose": "*"

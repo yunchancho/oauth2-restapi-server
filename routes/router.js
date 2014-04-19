@@ -40,7 +40,7 @@ var setAuthRoutes = function (router) {
     require('./auth/google')(router);
     //require('./auth/yahoo')(router);
     require('./auth/linkedin')(router);
-    //require('./auth/github')(router);
+    require('./auth/github')(router);
 };
 
 var isLogined = function (req, res, next) {

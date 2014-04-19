@@ -34,7 +34,7 @@ var schema = mongoose.Schema({
         tokenSecret : String,
         displayName : String
     },
-    linkedin: {
+    linkedin : {
         id : String,
         token : String,
         tokenSecret : String,
@@ -43,8 +43,15 @@ var schema = mongoose.Schema({
         industry : String,
         headline : String,
         photo : String
+    },
+    github : {
+        id : String,
+        token : String,
+        refreshToken : String,
+        displayName : String,
+        email : String,
+        photo : String
     }
-    // TODO add github fields
 });
 
 // generating a hash
