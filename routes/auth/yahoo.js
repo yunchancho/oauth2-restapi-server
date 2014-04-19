@@ -1,7 +1,7 @@
 var passport = require('passport');
-var Strategy = require('passport-facebook').Strategy;
+var Strategy = require('passport-yahoo-oauth').Strategy;
 var User = require(__appbase_dirname + '/models/model-user');
-var facebookInfo = require(__appbase_dirname + '/routes/oauth-info').facebook;
+var yahooInfo = require(__appbase_dirname + '/routes/oauth-info').yahoo;
 
 var initialize = function (router) {
     setPassportStrategy();
@@ -10,37 +10,37 @@ var initialize = function (router) {
 
 var setRouter = function (router) {
     // login (authenticate)
-    router.get('/auth/login/facebook',
-            passport.authenticate('facebook', {
-                scope : 'email user_birthday'
+    router.get('/auth/login/yahoo',
+            passport.authenticate('yahoo', function (req, res) {
+                console.log('yahoo start to authenticate user');
             })
     );
 
-    router.get('/auth/login/facebook/callback',
-            passport.authenticate('facebook', {
+    router.get('/auth/login/yahoo/callback',
+            passport.authenticate('yahoo', {
                 successRedirect: '/profile',
-                failureRedirect: '/auth/login/facebook',
+                failureRedirect: '/auth/login/yahoo',
                 failureFlash: true
             })
     );
 
     // connect to current session
-    router.get('/auth/connect/facebook',
-            passport.authorize('facebook', {
-                scope : 'email'
+    router.get('/auth/connect/yahoo',
+            passport.authenticate('yahoo', function (req, res) {
+                console.log('yahoo start to connect user');
             })
     );
 
     // disconnect from current session
-    router.get('/auth/disconnect/facebook',
+    router.get('/auth/disconnect/yahoo',
             function (req, res) {
-                console.log('disconnect facebook');
+                console.log('disconnect yahoo');
                 if (!req.user) {
                     res.redirect('/auth/login');
                 } else {
                     var user = req.user;
-                    user.facebook = undefined;
-                    console.log('facebook info: ' + req.user.facebook);
+                    user.yahoo = undefined;
+                    console.log('yahoo info: ' + req.user.yahoo);
                     user.save(function (err) {
                         if (err) {
                             console.error(err);
@@ -53,14 +53,13 @@ var setRouter = function (router) {
 
 var setPassportStrategy = function () {
     passport.use(new Strategy({
-        clientID: facebookInfo.appId,
-        clientSecret: facebookInfo.appSecret,
-        callbackURL: facebookInfo.callbackURL,
-        //profileFields: ['id', 'displayName', 'photos'],
+        consumerKey: yahooInfo.consumerKey,
+        consumerSecret: yahooInfo.consumerSecret,
+        callbackURL: yahooInfo.callbackURL,
         passReqToCallback: true
     }, function (req, token, refreshToken, profile, done) {
         // TODO How about using process.nextTick() for code below
-        User.findOne({ 'facebook.id' : profile.id },
+        User.findOne({ 'yahoo.id' : profile.id },
             function (err, user) {
                 if (err) {
                     console.error(err);
@@ -68,7 +67,7 @@ var setPassportStrategy = function () {
                 }
 
                 if (user) {
-                    console.log('facebook user already exists!');
+                    console.log('yahoo user already exists!');
                     return done(null, user);
                 }
 
@@ -81,13 +80,13 @@ var setPassportStrategy = function () {
                     changedUser = new User();
                 }
 
-                // append facebook profile
-                changedUser.facebook.id = profile.id;
-                changedUser.facebook.token = token;
-                changedUser.facebook.refreshToken = refreshToken;
-                changedUser.facebook.displayName = profile.name.familyName + ' ' + profile.name.givenName;
-                changedUser.facebook.email = (profile.emails[0].value || '').toLowerCase();
-                console.log(changedUser.facebook);
+                // append yahoo profile
+                changedUser.yahoo.id = profile.id;
+                changedUser.yahoo.token = token;
+                changedUser.yahoo.refreshToken = refreshToken;
+                changedUser.yahoo.displayName = 
+                changedUser.yahoo.email = 
+                console.log(changedUser.yahoo);
                 changedUser.save(function (err) {
                     if (err) {
                         console.error(err);

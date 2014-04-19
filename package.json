@@ -19,6 +19,8 @@
     "passport-facebook" : "*", 
     "passport-twitter" : "*", 	
     "passport-google-oauth" : "*",
+    "passport-yahoo-oauth" : "*",
+    "passport-linkedin-oauth2" : "*",
     "connect-flash" : "*", 	
     "bcrypt-nodejs" : "*", 
     "mongoose": "*"

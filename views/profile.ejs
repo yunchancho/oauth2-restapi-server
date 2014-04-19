@@ -99,6 +99,49 @@
         <a class='btn btn-danger ' href='/auth/connect/google' style="width:12em"> Connect with Google+</a>
     <% } %>
     </div>
+
+    <!-- linkedin account -->
+    <hr>
+    <h3><span class="fa fa-user"></span> LinkedIn Account</h3>
+    <% if (user.linkedin.token) { %>
+    <p>
+        <strong>id</strong>: <%= user.linkedin.id %><br>
+        <strong>token</strong>: <%= user.linkedin.token %><br>
+        <strong>refresh token</strong>: <%= user.linkedin.refreshToken %><br>
+        <strong>display name</strong>: <%= user.linkedin.displayName %><br>
+        <strong>email</strong>: <%= user.linkedin.email %><br>
+        <strong>industry</strong>: <%= user.linkedin.industry %><br>
+        <strong>headline</strong>: <%= user.linkedin.headline %><br>
+        <strong>photo</strong>: <img src=<%= user.linkedin.photo %> />
+    </p>
+    <% } %>
+    </div>
+
+    <div class="btn-group">
+        <a class='btn btn-default disabled'><i class="fa fa-yahoo" style="width:16px; height:17px"></i></a>
+    <% if (user.yahoo.token) { %>
+        <a href="/auth/disconnect/yahoo" class="btn btn-default">Disconnect with yahoo</a>
+    <% } else { %>
+        <a href="/auth/connect/yahoo" class="btn btn-default">Connect with Yahoo!</a>
+    <% } %>
+    </div>
+
+    <div class="btn-group">
+        <a class='btn btn-default disabled'><i class="fa fa-linkedin" style="width:16px; height:17px"></i></a>
+    <% if (user.linkedin.token) { %>
+        <a href="/auth/disconnect/linkedin" class="btn btn-default">Disconnect with linkedin</a>
+    <% } else { %>
+        <a href="/auth/connect/linkedin" class="btn btn-default">Connect with LinkedIn</a>
+    <% } %>
+    </div>
+    <div class="btn-group">
+        <a class='btn btn-default disabled'><i class="fa fa-linkedin" style="width:16px; height:17px"></i></a>
+    <% if (user.linkedin.token) { %>
+        <a href="/auth/disconnect/linkedin" class="btn btn-default">Disconnect with linkedin</a>
+    <% } else { %>
+        <a href="/auth/connect/linkedin" class="btn btn-default">Connect with LinkedIn</a>
+    <% } %>
+    </div>
     <br /><br />
 </div>
 </body>

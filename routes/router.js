@@ -38,9 +38,9 @@ var setAuthRoutes = function (router) {
     require('./auth/twitter')(router);
     require('./auth/facebook')(router);
     require('./auth/google')(router);
-    //require('./auth/yahoo')(router, passport);
-    //require('./auth/linkedin')(router, passport);
-    //require('./auth/github')(router, passport);
+    //require('./auth/yahoo')(router);
+    require('./auth/linkedin')(router);
+    //require('./auth/github')(router);
 };
 
 var isLogined = function (req, res, next) {

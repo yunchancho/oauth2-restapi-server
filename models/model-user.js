@@ -27,8 +27,24 @@ var schema = mongoose.Schema({
         displayName : String,
         email : String,
         photo : String
+    },
+    yahoo : {
+        id : String,
+        token : String,
+        tokenSecret : String,
+        displayName : String
+    },
+    linkedin: {
+        id : String,
+        token : String,
+        tokenSecret : String,
+        displayName : String,
+        email : String,
+        industry : String,
+        headline : String,
+        photo : String
     }
-    // TODO add yahoo, linkedin, github fields
+    // TODO add github fields
 });
 
 // generating a hash
