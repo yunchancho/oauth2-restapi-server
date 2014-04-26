@@ -17,11 +17,20 @@ var setRouter = function (router) {
 
     router.get('/auth/login/linkedin/callback',
             passport.authenticate('linkedin', {
-                successRedirect: '/profile',
-                failureRedirect: '/auth/login/linkedin',
-                failureFlash: true
+                successRedirect: '/auth/login/linkedin/callback/success',
+                failureRedirect: '/auth/login/linkedin/callback/failure'
             })
     );
+
+    router.get('/auth/login/linkedin/callback/:state', function (req, res) {
+        if (req.params.state == 'success') {
+            res.render('auth_popup', { state: 'success', data: req.user._id });
+        } else {
+            res.render('auth_popup', { state: 'failure', data: {
+                message: "linkedin Authentication failed :("
+            }});
+        }
+    });
 
     // connect to current session
     router.get('/auth/connect/linkedin',
@@ -34,7 +43,7 @@ var setRouter = function (router) {
             function (req, res) {
                 console.log('disconnect linkedin');
                 if (!req.user) {
-                    res.redirect('/auth/login');
+                    res.send(401, { reason: 'not-authenticated' });
                 } else {
                     var user = req.user;
                     user.linkedin = undefined;
@@ -44,7 +53,7 @@ var setRouter = function (router) {
                             console.error(err);
                         }
                     });
-                    res.redirect('/profile');
+                    res.json(user);
                 }
     });
 };

@@ -1,0 +1,16 @@
+{
+  "name": "node-angular-routing",
+  "description": "libraries for angular based frontend",
+  "version": "0.0.1",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "angular": "1.2.x",
+    "angular-route": "1.2.x",
+    "angular-resource": "1.2.x",
+    "angular-loader": "1.2.x",
+    "angular-mocks": "~1.2.15",
+    "bootstrap": "~3.1.1",
+    "font-awesome": "4.0.x"
+  }
+}

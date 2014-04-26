@@ -1,0 +1,11 @@
+<div class="container">
+    <form class="form-signin" role="form" ng-submit="signupForConnect(credentials)" novalidate> 
+        <h2 class="form-signin-heading">Please Sign up for new account</h2>
+        <div class="alert alert-danger animate-hide" ng-show="alertMessage">{{alertMessage}}</div>
+        <input type="email" class="form-control" ng-model="credentials.email" placeholder="Email address" required>
+        <input type="password" class="form-control" ng-model="credentials.password" placeholder="Password" required>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Signup</button>
+    </form>
+    <hr>
+    <p> Just go to my <a href="#/profile">profile</a></p>
+</div>

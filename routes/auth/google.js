@@ -18,11 +18,20 @@ var setRouter = function (router) {
 
     router.get('/auth/login/google/callback',
             passport.authenticate('google', {
-                successRedirect: '/profile',
-                failureRedirect: '/auth/login/google',
-                failureFlash: true
+                successRedirect: '/auth/login/google/callback/success',
+                failureRedirect: '/auth/login/google/callback/failure'
             })
     );
+
+    router.get('/auth/login/google/callback/:state', function (req, res) {
+        if (req.params.state == 'success') {
+            res.render('auth_popup', { state: 'success', data: req.user._id });
+        } else {
+            res.render('auth_popup', { state: 'failure', data: {
+                message: "google+ Authentication failed :("
+            }});
+        }
+    });
 
     // connect to current session
     router.get('/auth/connect/google',
@@ -36,7 +45,7 @@ var setRouter = function (router) {
             function (req, res) {
                 console.log('disconnect google');
                 if (!req.user) {
-                    res.redirect('/auth/login');
+                    res.send(401, { reason: 'not-authenticated' });
                 } else {
                     var user = req.user;
                     user.google = undefined;
@@ -46,7 +55,7 @@ var setRouter = function (router) {
                             console.error(err);
                         }
                     });
-                    res.redirect('/profile');
+                    res.json(req.user);
                 }
     });
 };

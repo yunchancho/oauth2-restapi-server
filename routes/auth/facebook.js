@@ -18,11 +18,20 @@ var setRouter = function (router) {
 
     router.get('/auth/login/facebook/callback',
             passport.authenticate('facebook', {
-                successRedirect: '/profile',
-                failureRedirect: '/auth/login/facebook',
-                failureFlash: true
+                successRedirect: '/auth/login/facebook/callback/success',
+                failureRedirect: '/auth/login/facebook/callback/failure'
             })
     );
+
+    router.get('/auth/login/facebook/callback/:state', function (req, res) {
+        if (req.params.state == 'success') {
+            res.render('auth_popup', { state: 'success', data: req.user._id });
+        } else {
+            res.render('auth_popup', { state: 'failure', data: {
+                message: "facebook authentication failed :("
+            }});
+        }
+    });
 
     // connect to current session
     router.get('/auth/connect/facebook',
@@ -36,7 +45,7 @@ var setRouter = function (router) {
             function (req, res) {
                 console.log('disconnect facebook');
                 if (!req.user) {
-                    res.redirect('/auth/login');
+                    res.send(401, { reason: 'not-authenticated' });
                 } else {
                     var user = req.user;
                     user.facebook = undefined;
@@ -46,7 +55,7 @@ var setRouter = function (router) {
                             console.error(err);
                         }
                     });
-                    res.redirect('/profile');
+                    res.json(user);
                 }
     });
 };

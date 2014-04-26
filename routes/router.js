@@ -11,11 +11,11 @@ var initialize = function (app) {
 
 var setRootRoutes = function (router) {
     router.get('/', isLogined, function (req, res) {
-        res.render('profile.ejs', { user: req.user });
+        res.json(req.user);
     });
 
     router.get('/profile', isLogined, function (req, res) {
-        res.render('profile.ejs', { user: req.user });
+        res.json(req.user);
     });
 };
 
@@ -38,7 +38,7 @@ var setAuthRoutes = function (router) {
     require('./auth/twitter')(router);
     require('./auth/facebook')(router);
     require('./auth/google')(router);
-    //require('./auth/yahoo')(router);
+    require('./auth/yahoo')(router);
     require('./auth/linkedin')(router);
     require('./auth/github')(router);
 };
@@ -47,7 +47,7 @@ var isLogined = function (req, res, next) {
     if (req.isAuthenticated()) {
         return next();
     }
-    res.redirect('/auth/login');
+    res.json(401, { reason: 'not-authenticated' });
 };
 
 module.exports.initialize = initialize;

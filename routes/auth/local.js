@@ -9,72 +9,104 @@ var initialize = function (router) {
 
 var setRouter = function (router) {
     router.get('/auth', function (req, res) {
-        res.redirect('/auth/login');
+        res.send(404);
     });
 
     // set route for login and its passport
     router.get('/auth/login', function (req, res) {
+        // TODO replace session way to token way
         if (req.user) {
-            res.redirect('/profile');
+            res.json({ data: req.user._id });
+        } else {
+            res.json(401, { reason: 'not-authenticated' });
         }
-        res.render('login.ejs', { message: req.flash('loginMessage') });
     });
 
-    router.post('/auth/login', passport.authenticate('local-login', {
-        successRedirect: '/profile',
-        failureRedirect: '/auth/login',
-        failureFlash: true
-    }));
+    router.post('/auth/login', function (req, res, next) {
+            passport.authenticate('local-login', function (err, user, info) {
+                if (err) {
+                    return next(err);
+                }
+                if (!user) {
+                    console.log(info);
+                    return res.json(401, info);
+                }
+
+                req.login(user, function (err) {
+                    if (err) {
+                        return next(err);
+                    }
+                    return res.json({ data: req.user._id});
+                });
+            })(req, res, next);
+    });
+
 
     router.get('/auth/logout', function (req, res) {
+        // TODO replace this to token way
         if (req.user) {
             req.logout();
         } else {
             console.log('this user is not authenticated');
         }
-        res.redirect('/');
+        // TODO what do we remove for this request??
+        res.send(200);
     });
 
-    router.get('/auth/connect/local',
-            function (req, res) {
-                res.render('connect.ejs',
-                    { message: req.flash('loginMessage') });
-    });
+    router.post('/auth/connect/local', function (req, res, next) {
+            passport.authenticate('local-signup', function (err, user, info) {
+                if (err) {
+                    return next(err);
+                }
+                if (!user) {
+                    return res.json(401, info);
+                }
 
-    router.post('/auth/connect/local', passport.authenticate('local-signup', {
-        successRedirect: '/profile',
-        failureRedirect: '/auth/connect/local',
-        failureFlash: true
-    }));
+                req.login(user, function (err) {
+                    if (err) {
+                        return next(err);
+                    }
+                    return res.json({ data: user._id });
+                });
+            })(req, res, next);
+    });
 
     router.get('/auth/disconnect/local',
             function (req, res) {
                 var user = req.user;
+                if (!user) {
+                    res.json(401, { reason: 'not-authenticated' });
+                }
                 user.local = undefined;
                 user.save(function (err) {
                     if (err) {
                         console.error(err);
                     }
                 });
-                res.redirect('/profile');
+                res.json(user);
     });
 
     // set route for signup and its passport
-    router.get('/auth/signup', function (req, res) {
-        if (req.user) {
-            res.redirect('/');
-        }
-        res.render('signup.ejs', { message: req.flash('signupMessage') });
-    });
     router.post('/auth/signup', function (req, res, next) {
-        console.log('signup post middleware function');
-        return next();
-    }, passport.authenticate('local-signup', {
-        successRedirect: '/profile',
-        failureRedirect: '/auth/signup',
-        failureFlash: true
-    }));
-}
+        passport.authenticate('local-signup', function (err, user, info) {
+            console.log('success to local-signup passport');
+            if (err) {
+                return next(err);
+            }
+            if (!user) {
+                console.log(info);
+                return res.json(401, info);
+            }
+
+            req.login(user, function (err) {
+                if (err) {
+                    return next(err);
+                }
+                return res.json({ data: user._id });
+            });
+        })(req, res, next);
+    });
+};
 
 var setPassportStrategy = function () {
     // set login strategy
@@ -83,6 +115,7 @@ var setPassportStrategy = function () {
         passwordField: 'password',
         passReqToCallback: true
     }, function (req, email, password, done) {
+        console.log('passport local login verify callback');
         if (email) {
             email = email.toLowerCase();
         }
@@ -92,11 +125,11 @@ var setPassportStrategy = function () {
             }
 
             if (!user) {
-                return done(null, false, req.flash('loginMessage', 'Invaild user.'));
+                return done(null, false, { reason: 'invalid-email' });
             }
 
             if (!user.validPassword(password)) {
-                return done(null, false, req.flash('loginMessage', 'Invalid password.'));
+                return done(null, false, { reason: 'invalid-password' });
             }
 
             return done(null, user);
@@ -115,42 +148,41 @@ var setPassportStrategy = function () {
         }
 
         process.nextTick(function() {
-            if (!req.user) {
-                console.log('!req.user');
-                User.findOne({ 'local.email': email },
-                    function (err, user) {
-                        if (err) {
-                            return done(err);
-                        }
-
-                        if (user) {
-                            return done(null, false,
-                                req.flash('signupMessage', 'That email is already registered.')); 
-                        }
-                        var user = new User();
-                        user.local.email = email;
-                        user.local.password = user.generateHash(password);
-                        user.save(function (err) {
-                            if (err) {
-                                throw err;
-                            }
-                            return done(null, user);
-                        });
-                });
-            } else if (!req.user.local.email) {
-                console.log('!req.user.local');
-                var user = req.user;
-                user.local.email = email;
-                user.local.password = user.generateHash(password);
-                user.save(function (err) {
-                    if (err) {
-                        throw err;
-                    }
-                    return done(null, user);
-                });
-            } else {
+            // TODO replace this to token way
+            
+            if (req.user && req.user.local && req.user.local.email) {
+                // in case of invalid access, just return current data
                 return done(null, req.user);
             }
+
+            User.findOne({ 'local.email': email },
+                function (err, user) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    if (user) {
+                        return done(null, false, {
+                            reason: 'registered-email'
+                        }); 
+                    }
+
+                    var user;
+                    if (!req.user) {
+                        user = new User();
+                    } else if (!req.user.local.email) {
+                        user = req.user;
+                    } 
+
+                    user.local.email = email;
+                    user.local.password = user.generateHash(password);
+                    user.save(function (err) {
+                        if (err) {
+                            throw err;
+                        }
+                        return done(null, user);
+                    });
+                });
         });
     }));
 };
