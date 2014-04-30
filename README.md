@@ -1,7 +1,7 @@
 Social-Logins
 =============
 
-`social-logins` is a prototype for login or connect with famous social networks. This prototype works on node.js, and uses [passport](http://https://github.com/jaredhanson/passport) for authentication and authorization. Basically, the following social networks are supported.
+`social-logins` is a prototype for login and connect with famous social networks. This prototype works on [node.js](http://nodejs.org) with [passport](http://github.com/jaredhanson/passport) as backend server and [angular.js](http://angularjs.org) frontend. This `social-logins` support the following social networks as default.
 
  - Twitter (OAuth1.0A)
  - Facebook (OAuth2)
@@ -11,11 +11,23 @@ Social-Logins
  - GitHub (OAuth2)
 
 `social-logins` provides the followings
- - *node.js server*
-  - receiving remote request of login or connect
-  - communicating with each social network server for oauth
-  - maintaining added user account using local database
- - web page based login, sign-up, profile *UI*
+ - **node.js backend** (server) for authentication and authorization from external frontends
+  - handling external requests RESTful API concept using express module
+  - authenticating session based way for local account 
+  - authenticating token based way for social networks using passport module
+  - maintaining user accounts using local database using mongoose module
+  - modulizing code along to supported social networks
+  - (TODO) support https protocol with SSL (TLS) for security
+  - (TODO) converting session based authentication to token based one for backend scalability
+ - **angular.js frontend** (sample client) for rendering views dynamically and interacting with users
+  - supporting single page web app (that means page isn't refreshed)
+  - interacting with users using login/signup/profile views
+  - routing pages using $route angular service
+  - requesting backend resources using $resource angluar service
+  - recovering response error of http status 401
+  - supporting new window for external oauth authentications to avoid CORS problem due to ajax
+  - supporting bower script to maintian js libraries like angluar.js, bootstrap, fontawesome
+  - (TODO) applyig twitter's bootstrap fully to views
 
 You can add login for other social networks simply if you conform to structure of this prototype.
 
@@ -23,9 +35,10 @@ You can add login for other social networks simply if you conform to structure o
 prerequisites are the followings :
 
  - clone `social-logins` repo into your local machine
+    $ git clone git@github.com:vinebrancho/social-logins.git
  - install mongodb into your local machine
 
-And then, You can install social-logins using the following.
+And then, You can install `social-logins` using the following.
 
     $ npm install
   
@@ -34,11 +47,11 @@ You can run node server with `social-logins` just using the following.
 
     $ npm start
 
-And the, you can see Login UI of `social-logins` on your browser by connecting to your node server url
+And the, you can see Login UI of `social-logins` on your web browser by connecting to your node server url
 
-    http://www.your_node_server.com/
+    http://<your_node_server.com>/
     
-In order to login or connect with accouts of social networks, you *must* change the `routes/oauth-info.js`. The file includes application id, secret and redirect url of social network for oauth. To get application id (or key), register your application on each social networks. After that, you replace id, secret and redirect url of the file to your own ones. The following is example for twitter oauth setting
+In order to login or connect with accouts of social networks, you **must** change the `routes/oauth-info.js`. The file includes application id, secret and redirect url registered on social network provider for oauth authentication. To get application id (or key), register your application on each social networks. After that, you can replace id, secret and redirect url of the file to your own ones. The following is example for twitter oauth setting
     
 ``` javascript
     ...
@@ -67,16 +80,11 @@ You can add a social network into `social-logins` simply if you do the following
     - change params of passport.use() according to interface of `passport-<new_social_network_name>` module
     - change code inserting data into database in passort verify-callback, according to fields added in 3 step
 5. Enable node module created above by adding `require(<new module>)(router)` into `setAuthRoutes` function of `routes/router.js` 
-6. Add new view to existing UI
-    - add new button for the social networks into `/views/login.ejs`
-    - add code to display data on `/views/profile.ejs`
+6. Modify existing views of angular.js frontend 
+    - add new button for the social networks into `/public/partials/login.html`
+    - add angular models on `/public/partials/profile.html` to show information of new social network account
 
 * You may find passport strategy module of other social networks in the [passport wiki](https://github.com/jaredhanson/passport/wiki/Strategies). If there isn't the passport strategy module that you want, you need to create new passport starategy module for use.
-
-## Screenshots
-### Login
-
-### profile
 
 ## Credits
 
