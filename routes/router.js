@@ -50,4 +50,13 @@ var isLogined = function (req, res, next) {
     res.json(401, { reason: 'not-authenticated' });
 };
 
+var redirectHttps = function (req, res, next) {
+    if (!req.secure) {
+        console.log('redirect secure http server');
+        return res.redirect('https://' + req.host + ':3443' + req.url);
+    }
+    next();
+}
+
 module.exports.initialize = initialize;
+module.exports.redirectHttps = redirectHttps;

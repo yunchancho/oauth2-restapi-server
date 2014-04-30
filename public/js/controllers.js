@@ -88,7 +88,7 @@ module.controller('SignupCtrl', function($scope, $location, authFactory, tokenFa
         }, function (error) {
             // show error message on current page
             // e.g) $scope.error = err.message;
-            $scope.alertMessage = error.data.message;
+            $scope.alertMessage = error.data.reason;
         });
     };
 });

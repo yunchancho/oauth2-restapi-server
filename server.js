@@ -25,6 +25,7 @@ app.set('view engine', 'ejs');
 // initialize database model handler and path route handler
 // setting middleware 
 app.use(logger('dev'));
+app.all('*', router.redirectHttps);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(express.static(path.join(__dirname, 'public')));
