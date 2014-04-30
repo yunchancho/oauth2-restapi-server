@@ -35,7 +35,9 @@ You can add login for other social networks simply if you conform to structure o
 prerequisites are the followings :
 
  - clone `social-logins` repo into your local machine
+
     $ git clone git@github.com:vinebrancho/social-logins.git
+
  - install mongodb into your local machine
 
 And then, You can install `social-logins` using the following.
