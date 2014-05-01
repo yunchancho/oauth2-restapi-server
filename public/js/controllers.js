@@ -16,8 +16,8 @@ module.controller('LoginCtrl', function($scope, $rootScope, $location, $window, 
             // emit login complete
             $rootScope.$emit('required-login:success');
             // save info with token sent by node server
-            console.log('_id : ' + response.data);
-            tokenFactory.setToken(response.data);
+            console.log('access_token for node.js server: ' + response.token);
+            tokenFactory.setToken(response.token);
             if (redirectFactory.getUrl()) {
                 $location.path(redirectFactory.getUrl());
             } else {
@@ -37,10 +37,11 @@ module.controller('LoginCtrl', function($scope, $rootScope, $location, $window, 
         $window.open(url, 'target=_blank');
     };
 
-    $rootScope.$on('social-login:success', function (event, data) {
+    $rootScope.$on('social-login:success', function (event, token) {
         console.log('Success event Recieved');
-        console.log('_id: ' + data);
-        tokenFactory.setToken(data);
+        console.log('access_token for node.js server: ' + token);
+        tokenFactory.setToken(token);
+        console.log('credentials: ' + JSON.stringify($scope.credentials));
         if (redirectFactory.getUrl()) {
             $location.path(redirectFactory.getUrl());
         } else {
@@ -64,8 +65,8 @@ module.controller('SignupCtrl', function($scope, $location, authFactory, tokenFa
             email : $scope.credentials.email,
             password : $scope.credentials.password
         }, function (response) {
-            console.log('_id : ' + response.data);
-            tokenFactory.setToken(response.data);
+            console.log('access_token for node.js server: ' + response.token);
+            tokenFactory.setToken(response.token);
             $location.path('/profile');
         }, function (error) {
             // show error message on current page
@@ -82,8 +83,8 @@ module.controller('SignupCtrl', function($scope, $location, authFactory, tokenFa
             password : $scope.credentials.password
         }, function (response) {
             // save info with token sent by node server
-            console.log('_id : ' + response.data);
-            tokenFactory.setToken(response.data);
+            console.log('access_token for node.js server : ' + response.token);
+            tokenFactory.setToken(response.token);
             $location.path('/profile');
         }, function (error) {
             // show error message on current page
@@ -93,9 +94,9 @@ module.controller('SignupCtrl', function($scope, $location, authFactory, tokenFa
     };
 });
 
-module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $location, authFactory, tokenFactory, getProfile) {
+module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $location, authFactory, tokenFactory, profileFactory, profileRouteResolver) {
     $scope.alertMessage = null;
-    $scope.profile = getProfile;
+    $scope.profile = profileRouteResolver;
     $scope.logout = function () {
         authFactory.get({
             action: 'logout'
@@ -119,18 +120,23 @@ module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $
             action: 'disconnect',
             social: socialName
         }, function (data) {
-            console.log('disconnect callback: ' + data);
-            tokenFactory.setToken(data);
-            // reload current route for fetching updated profile
-            $route.reload();
+            console.log('disconnect callback: ' + data.token);
+            tokenFactory.setToken(data.token);
+            // fetch profile again from node server
+            profileFactory.getProfile(function(response) {
+                $scope.profile = response;
+            });
         });
     };
 
-    $rootScope.$on('social-login:success', function (event, data) {
+    $rootScope.$on('social-login:success', function (event, token) {
         console.log('Success event Recieved');
-        tokenFactory.setToken(data);
+        tokenFactory.setToken(token);
         // reload current route for fetching updated profile
-        $route.reload();
+            // fetch profile again from node server
+            profileFactory.getProfile(function(response) {
+                $scope.profile = response;
+            });
     });
 
     $rootScope.$on('social-login:failure', function (event, error) {

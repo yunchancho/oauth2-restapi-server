@@ -23,9 +23,12 @@
     "passport-yahoo-oauth" : "*",
     "passport-linkedin-oauth2" : "*",
     "passport-github" : "*",
+    "passport-http-bearer" : "*",
+    "jwt-simple": "*",
     "connect-flash" : "*", 	
     "bcrypt-nodejs" : "*", 
-    "mongoose": "*"
+    "mongoose": "*",
+    "moment": "*"
   },
   "devDependancies": {
     "bower": "^1.3.1"

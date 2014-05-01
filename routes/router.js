@@ -5,16 +5,13 @@ var User = require(__appbase_dirname + '/models/model-user');
 var initialize = function (app) {
     setRootRoutes(app);
     setAuthRoutes(app);
+    setApiRoutes(app);
 
     //TODO add additional router if you need
 };
 
 var setRootRoutes = function (router) {
     router.get('/', isLogined, function (req, res) {
-        res.json(req.user);
-    });
-
-    router.get('/profile', isLogined, function (req, res) {
         res.json(req.user);
     });
 };
@@ -41,6 +38,10 @@ var setAuthRoutes = function (router) {
     require('./auth/yahoo')(router);
     require('./auth/linkedin')(router);
     require('./auth/github')(router);
+};
+
+var setApiRoutes = function (router) {
+    require('./api/profile')(router);
 };
 
 var isLogined = function (req, res, next) {

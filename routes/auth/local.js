@@ -1,5 +1,6 @@
 var passport = require('passport');
 var Strategy = require('passport-local').Strategy;
+var tokenizer = require('./utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
 
 var initialize = function (router) {
@@ -16,7 +17,7 @@ var setRouter = function (router) {
     router.get('/auth/login', function (req, res) {
         // TODO replace session way to token way
         if (req.user) {
-            res.json({ data: req.user._id });
+            res.json({ token: req.user.access_token });
         } else {
             res.json(401, { reason: 'not-authenticated' });
         }
@@ -36,7 +37,7 @@ var setRouter = function (router) {
                     if (err) {
                         return next(err);
                     }
-                    return res.json({ data: req.user._id});
+                    return res.json({ token: req.user.access_token });
                 });
             })(req, res, next);
     });
@@ -66,7 +67,7 @@ var setRouter = function (router) {
                     if (err) {
                         return next(err);
                     }
-                    return res.json({ data: user._id });
+                    return res.json({ token: user.access_token });
                 });
             })(req, res, next);
     });
@@ -82,8 +83,8 @@ var setRouter = function (router) {
                     if (err) {
                         console.error(err);
                     }
+                    res.json({ token: user.access_token });
                 });
-                res.json(user);
     });
 
     // set route for signup and its passport
@@ -102,7 +103,7 @@ var setRouter = function (router) {
                 if (err) {
                     return next(err);
                 }
-                return res.json({ data: user._id });
+                return res.json({ token: user.access_token });
             });
         })(req, res, next);
     });
@@ -170,6 +171,12 @@ var setPassportStrategy = function () {
                     var user;
                     if (!req.user) {
                         user = new User();
+                        try {
+                            user.access_token = tokenizer.create(user._id);
+                        } catch(err) {
+                            // TODO need to handle error properly
+                            console.log(err);
+                        }
                     } else if (!req.user.local.email) {
                         user = req.user;
                     } 

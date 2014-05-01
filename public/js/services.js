@@ -13,14 +13,13 @@ module.factory('authFactory', function ($resource) {
 
 module.factory('profileFactory', function ($resource, $q, tokenFactory) {
     var functions = {
-        getProfile: function () {
+        getProfileResolver: function () {
               // check if token exists, or not.
               // if not, current route is stopped!
               if (!tokenFactory.isAuthenticated()) {
                   return tokenFactory.stopRouting();
               }
-              
-              var promise = $resource('/profile').get().$promise;
+              var promise = $resource('/api/profile').get().$promise;
               promise.then(
                   function(profile) {
                     console.log('resolver success');
@@ -30,18 +29,30 @@ module.factory('profileFactory', function ($resource, $q, tokenFactory) {
                     console.log('resolver error:' + error);
               });
               return promise;
+        },
+
+        getProfile: function (callback) {
+              // check if token exists, or not.
+              // if not, current route is stopped!
+              $resource('/api/profile').get(function (response) {
+                  callback(response);
+              });
         }
     };
 
     return functions;
 });
 
-module.factory('httpRequestInterceptor', function($q, $location) {
+module.factory('httpRequestInterceptor', function($q, $location, tokenFactory) {
     var interceptor = {
         'request': function (config) {
             // when token based login is used,
             // add the token to 'Authentication' of http header 
             console.log(config);
+
+            // add token to http header for authorization in server side
+            config.headers.Authorization = 
+                'Bearer ' + tokenFactory.getToken();
             return config || $q.when(config);
         },
         'requestError': function (rejection) {
@@ -85,6 +96,10 @@ module.factory('httpResponseInterceptor', function($q, $injector, $location, tok
 
 module.factory('tokenFactory', function ($rootScope, $q, $location, $timeout, redirectFactory) {
     var authToken;
+    // watch authToken value
+    // if it is changed to other value, set it to local storage
+    // 
+
     return {
         setToken: function (token) {
             authToken = token;

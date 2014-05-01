@@ -23,8 +23,8 @@ app.config(function($routeProvider) {
           templateUrl: 'partials/profile.html',
           controller: 'ProfileCtrl',
           resolve: {
-              getProfile: function (profileFactory) {
-                  return profileFactory.getProfile();
+              profileRouteResolver: function (profileFactory) {
+                  return profileFactory.getProfileResolver();
               }
           },
           authenticate: true
@@ -42,6 +42,22 @@ app.config(function($routeProvider) {
 });
 
 app.run(function ($rootScope, $location, $window, tokenFactory, redirectFactory) {
+    // check already saved access_token
+    var access_token = window.localStorage.getItem('access_token');
+    if (access_token) {
+        console.log('access token for this app exists');
+        tokenFactory.setToken(access_token);
+    }
+
+    // watch access_token for accessing resources of this app(node server)
+    // if it is changed to other value, set it to local storage
+    $rootScope.$watch(tokenFactory.getToken, function (newVal, oldVal, scope) {
+        if (newVal !== oldVal) {
+            console.log('reset access_token into localstorage');
+            window.localStorage.setItem('access_token', newVal);
+        }
+    });
+
     // handle authorization for routes
     $rootScope.$on('$routeChangeStart', function (event, current, prev) {
         // check authentication
@@ -78,7 +94,6 @@ app.run(function ($rootScope, $location, $window, tokenFactory, redirectFactory)
 
     // this function should be called from auth popup
     $window.authState = function (state, data) {
-        console.log(data);
         $rootScope.$apply(function () {
             if (state == 'success') {
                $rootScope.$emit('social-login:success', data); 

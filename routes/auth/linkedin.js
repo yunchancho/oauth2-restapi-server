@@ -1,7 +1,8 @@
 var passport = require('passport');
 var Strategy = require('passport-linkedin-oauth2').Strategy;
+var tokenizer = require('./utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
-var linkedinInfo = require(__appbase_dirname + '/routes/oauth-info').linkedin;
+var linkedinInfo = require('./utils/oauth-info').linkedin;
 
 var initialize = function (router) {
     setPassportStrategy();
@@ -24,11 +25,17 @@ var setRouter = function (router) {
 
     router.get('/auth/login/linkedin/callback/:state', function (req, res) {
         if (req.params.state == 'success') {
-            res.render('auth_popup', { state: 'success', data: req.user._id });
+            res.render('auth_popup', {
+                state: 'success',
+                data: req.user.access_token
+            });
         } else {
-            res.render('auth_popup', { state: 'failure', data: {
-                message: "linkedin Authentication failed :("
-            }});
+            res.render('auth_popup', { 
+                state: 'failure', 
+                data: {
+                    message: "LinkedIn authentication failed :("
+                }
+            });
         }
     });
 
@@ -52,8 +59,8 @@ var setRouter = function (router) {
                         if (err) {
                             console.error(err);
                         }
+                        res.json({ token: user.access_token });
                     });
-                    res.json(user);
                 }
     });
 };
@@ -86,6 +93,13 @@ var setPassportStrategy = function () {
                 } else {
                     console.log('not yet logined user!');
                     changedUser = new User();
+                    try {
+                        changedUser.access_token =
+                             tokenizer.create(changedUser._id);
+                    } catch(err) {
+                        // TODO need to handle error properly
+                        console.log(err);
+                    }
                 }
 
                 // append linkedin profile
