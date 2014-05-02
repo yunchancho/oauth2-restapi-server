@@ -101,7 +101,7 @@ module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $
         authFactory.get({
             action: 'logout'
         }, function () {
-            tokenFactory.setToken(null);
+            tokenFactory.setToken('');
             $location.path('/');
         });
     };
