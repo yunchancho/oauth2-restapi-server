@@ -1,6 +1,5 @@
 var passport = require('passport');
 var Strategy = require('passport-local').Strategy;
-var tokenizer = require('./utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
 
 var initialize = function (router) {
@@ -24,22 +23,22 @@ var setRouter = function (router) {
     });
 
     router.post('/auth/login', function (req, res, next) {
-            passport.authenticate('local-login', function (err, user, info) {
+        passport.authenticate('local-login', function (err, user, info) {
+            if (err) {
+                return next(err);
+            }
+            if (!user) {
+                console.log(info);
+                return res.json(401, info);
+            }
+
+            req.login(user, function (err) {
                 if (err) {
                     return next(err);
                 }
-                if (!user) {
-                    console.log(info);
-                    return res.json(401, info);
-                }
-
-                req.login(user, function (err) {
-                    if (err) {
-                        return next(err);
-                    }
-                    return res.json({ token: req.user.access_token });
-                });
-            })(req, res, next);
+                return res.json(200, { id: user.id });
+            });
+        })(req, res, next);
     });
 
 
@@ -55,36 +54,35 @@ var setRouter = function (router) {
     });
 
     router.post('/auth/connect/local', function (req, res, next) {
-            passport.authenticate('local-signup', function (err, user, info) {
+        passport.authenticate('local-signup', function (err, user, info) {
+            if (err) {
+                return next(err);
+            }
+            if (!user) {
+                return res.json(401, info);
+            }
+
+            req.login(user, function (err) {
                 if (err) {
                     return next(err);
                 }
-                if (!user) {
-                    return res.json(401, info);
-                }
-
-                req.login(user, function (err) {
-                    if (err) {
-                        return next(err);
-                    }
-                    return res.json({ token: user.access_token });
-                });
-            })(req, res, next);
+                return res.send(200);
+            });
+        })(req, res, next);
     });
 
-    router.get('/auth/disconnect/local',
-            function (req, res) {
-                var user = req.user;
-                if (!user) {
-                    res.json(401, { reason: 'not-authenticated' });
-                }
-                user.local = undefined;
-                user.save(function (err) {
-                    if (err) {
-                        console.error(err);
-                    }
-                    res.json({ token: user.access_token });
-                });
+    router.get('/auth/disconnect/local', function (req, res) {
+        var user = req.user;
+        if (!user) {
+            res.json(401, { reason: 'not-authenticated' });
+        }
+        user.local = undefined;
+        user.save(function (err) {
+            if (err) {
+                console.error(err);
+            }
+            res.send(200);
+        });
     });
 
     // set route for signup and its passport
@@ -103,7 +101,7 @@ var setRouter = function (router) {
                 if (err) {
                     return next(err);
                 }
-                return res.json({ token: user.access_token });
+                return res.send(200, { id: user.id });
             });
         })(req, res, next);
     });
@@ -156,40 +154,35 @@ var setPassportStrategy = function () {
                 return done(null, req.user);
             }
 
-            User.findOne({ 'local.email': email },
-                function (err, user) {
+            User.findOne({
+                'local.email': email 
+            }, function (err, user) {
+                if (err) {
+                    return done(err);
+                }
+
+                if (user) {
+                    return done(null, false, {
+                        reason: 'registered-email'
+                    }); 
+                }
+
+                var user;
+                if (!req.user) {
+                    user = new User();
+                } else if (!req.user.local.email) {
+                    user = req.user;
+                } 
+
+                user.local.email = email;
+                user.local.password = user.generateHash(password);
+                user.save(function (err) {
                     if (err) {
-                        return done(err);
+                        throw err;
                     }
-
-                    if (user) {
-                        return done(null, false, {
-                            reason: 'registered-email'
-                        }); 
-                    }
-
-                    var user;
-                    if (!req.user) {
-                        user = new User();
-                        try {
-                            user.access_token = tokenizer.create(user._id);
-                        } catch(err) {
-                            // TODO need to handle error properly
-                            console.log(err);
-                        }
-                    } else if (!req.user.local.email) {
-                        user = req.user;
-                    } 
-
-                    user.local.email = email;
-                    user.local.password = user.generateHash(password);
-                    user.save(function (err) {
-                        if (err) {
-                            throw err;
-                        }
-                        return done(null, user);
-                    });
+                    return done(null, user);
                 });
+            });
         });
     }));
 };

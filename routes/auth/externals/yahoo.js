@@ -1,8 +1,8 @@
 var passport = require('passport');
-var Strategy = require('passport-linkedin-oauth2').Strategy;
-var tokenizer = require('./utils/tokenizer');
+var Strategy = require('passport-yahoo-oauth').Strategy;
+var tokenizer = require('../utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
-var linkedinInfo = require('./utils/oauth-info').linkedin;
+var yahooInfo = require('../utils/oauth-info').yahoo;
 
 var initialize = function (router) {
     setPassportStrategy();
@@ -11,50 +11,52 @@ var initialize = function (router) {
 
 var setRouter = function (router) {
     // login (authenticate)
-    router.get('/auth/login/linkedin',
-            passport.authenticate('linkedin', {
-                'state' : 'DCEEFWF45453sdffef424' 
-            }));
-
-    router.get('/auth/login/linkedin/callback',
-            passport.authenticate('linkedin', {
-                successRedirect: '/auth/login/linkedin/callback/success',
-                failureRedirect: '/auth/login/linkedin/callback/failure'
+    router.get('/auth/login/yahoo',
+            passport.authenticate('yahoo', function (req, res) {
+                console.log('yahoo start to authenticate user');
             })
     );
 
-    router.get('/auth/login/linkedin/callback/:state', function (req, res) {
+    router.get('/auth/login/yahoo/callback',
+            passport.authenticate('yahoo', {
+                successRedirect: '/auth/login/yahoo/callback/success',
+                failureRedirect: '/auth/login/yahoo/callback/failure'
+            })
+    );
+
+    router.get('/auth/login/yahoo/callback/:state', function (req, res) {
         if (req.params.state == 'success') {
-            res.render('auth_popup', {
+            res.render('extenral_account_oauth', {
                 state: 'success',
                 data: req.user.access_token
             });
         } else {
-            res.render('auth_popup', { 
+            res.render('extenral_account_oauth', { 
                 state: 'failure', 
                 data: {
-                    message: "LinkedIn authentication failed :("
+                    message: "Yahoo authentication failed :("
                 }
             });
         }
     });
 
     // connect to current session
-    router.get('/auth/connect/linkedin',
-            passport.authenticate('linkedin', {
-                'state' : 'DCEEFWF45453sdffef424' 
-            }));
+    router.get('/auth/connect/yahoo',
+            passport.authenticate('yahoo', function (req, res) {
+                console.log('yahoo start to connect user');
+            })
+    );
 
     // disconnect from current session
-    router.get('/auth/disconnect/linkedin',
+    router.get('/auth/disconnect/yahoo',
             function (req, res) {
-                console.log('disconnect linkedin');
+                console.log('disconnect yahoo');
                 if (!req.user) {
                     res.send(401, { reason: 'not-authenticated' });
                 } else {
                     var user = req.user;
-                    user.linkedin = undefined;
-                    console.log('linkedin info: ' + req.user.linkedin);
+                    user.yahoo = undefined;
+                    console.log('yahoo info: ' + req.user.yahoo);
                     user.save(function (err) {
                         if (err) {
                             console.error(err);
@@ -67,14 +69,13 @@ var setRouter = function (router) {
 
 var setPassportStrategy = function () {
     passport.use(new Strategy({
-        clientID: linkedinInfo.apiKey,
-        clientSecret: linkedinInfo.secretKey,
-        callbackURL: linkedinInfo.callbackURL,
-        scope: [ 'r_fullprofile', 'r_emailaddress' ],
+        consumerKey: yahooInfo.consumerKey,
+        consumerSecret: yahooInfo.consumerSecret,
+        callbackURL: yahooInfo.callbackURL,
         passReqToCallback: true
     }, function (req, token, refreshToken, profile, done) {
         // TODO How about using process.nextTick() for code below
-        User.findOne({ 'linkedin.id' : profile.id },
+        User.findOne({ 'yahoo.id' : profile.id },
             function (err, user) {
                 if (err) {
                     console.error(err);
@@ -82,7 +83,7 @@ var setPassportStrategy = function () {
                 }
 
                 if (user) {
-                    console.log('linkedin user already exists!');
+                    console.log('yahoo user already exists!');
                     return done(null, user);
                 }
 
@@ -102,15 +103,13 @@ var setPassportStrategy = function () {
                     }
                 }
 
-                // append linkedin profile
-                changedUser.linkedin.id = profile.id;
-                changedUser.linkedin.token = token;
-                changedUser.linkedin.refreshToken = refreshToken;
-                changedUser.linkedin.displayName = profile.displayName;
-                changedUser.linkedin.email = profile.emails[0].value;
-                changedUser.linkedin.industry = profile._json.industry;
-                changedUser.linkedin.headline = profile._json.headline;
-                changedUser.linkedin.photo = profile._json.pictureUrl;
+                // append yahoo profile
+                changedUser.yahoo.id = profile.id;
+                changedUser.yahoo.token = token;
+                changedUser.yahoo.refreshToken = refreshToken;
+                changedUser.yahoo.displayName = 
+                changedUser.yahoo.email = 
+                console.log(changedUser.yahoo);
                 changedUser.save(function (err) {
                     if (err) {
                         console.error(err);

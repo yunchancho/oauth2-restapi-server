@@ -1,8 +1,8 @@
 var passport = require('passport');
-var Strategy = require('passport-yahoo-oauth').Strategy;
-var tokenizer = require('./utils/tokenizer');
+var Strategy = require('passport-twitter').Strategy;
+var tokenizer = require('../utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
-var yahooInfo = require('./utils/oauth-info').yahoo;
+var twitterInfo = require('../utils/oauth-info').twitter;
 
 var initialize = function (router) {
     setPassportStrategy();
@@ -11,52 +11,64 @@ var initialize = function (router) {
 
 var setRouter = function (router) {
     // login (authenticate)
-    router.get('/auth/login/yahoo',
-            passport.authenticate('yahoo', function (req, res) {
-                console.log('yahoo start to authenticate user');
+    router.get('/auth/login/twitter',
+            passport.authenticate('twitter', {
+                scope : 'email'
             })
     );
 
-    router.get('/auth/login/yahoo/callback',
-            passport.authenticate('yahoo', {
-                successRedirect: '/auth/login/yahoo/callback/success',
-                failureRedirect: '/auth/login/yahoo/callback/failure'
+    router.get('/auth/login/twitter/callback',
+            passport.authenticate('twitter', {
+                successRedirect: '/auth/login/twitter/callback/success',
+                failureRedirect: '/auth/login/twitter/callback/failure'
             })
     );
 
-    router.get('/auth/login/yahoo/callback/:state', function (req, res) {
+    router.get('/auth/login/twitter/callback/:state', function (req, res) {
         if (req.params.state == 'success') {
-            res.render('auth_popup', {
+            console.log('succss: ' + req.user.access_token);
+            res.render('extenral_account_oauth', {
                 state: 'success',
                 data: req.user.access_token
             });
         } else {
-            res.render('auth_popup', { 
+            res.render('extenral_account_oauth', { 
                 state: 'failure', 
                 data: {
-                    message: "Yahoo authentication failed :("
+                    message: "Twitter Authentication failed :("
                 }
             });
         }
     });
 
     // connect to current session
-    router.get('/auth/connect/yahoo',
-            passport.authenticate('yahoo', function (req, res) {
-                console.log('yahoo start to connect user');
+    router.get('/auth/connect/twitter',
+            passport.authorize('twitter', {
+                scope : 'email'
             })
     );
 
+    // TODO WHY can't define one more as url callback for oauth?
+    /*
+    router.get('/auth/connect/twitter/callback',
+            passport.authorize('twitter', {
+                successRedirect: '/profile',
+                failureRedirect: '/auth/connect/twitter',
+                failureFlash: true
+            })
+    );
+    */
+
     // disconnect from current session
-    router.get('/auth/disconnect/yahoo',
+    router.get('/auth/disconnect/twitter',
             function (req, res) {
-                console.log('disconnect yahoo');
+                console.log('disconnect twitter');
                 if (!req.user) {
                     res.send(401, { reason: 'not-authenticated' });
                 } else {
                     var user = req.user;
-                    user.yahoo = undefined;
-                    console.log('yahoo info: ' + req.user.yahoo);
+                    user.twitter = undefined;
+                    console.log('twitter info: ' + req.user.twitter);
                     user.save(function (err) {
                         if (err) {
                             console.error(err);
@@ -69,13 +81,13 @@ var setRouter = function (router) {
 
 var setPassportStrategy = function () {
     passport.use(new Strategy({
-        consumerKey: yahooInfo.consumerKey,
-        consumerSecret: yahooInfo.consumerSecret,
-        callbackURL: yahooInfo.callbackURL,
+        consumerKey: twitterInfo.consumerKey,
+        consumerSecret: twitterInfo.consumerSecret,
+        callbackURL: twitterInfo.callbackURL,
         passReqToCallback: true
-    }, function (req, token, refreshToken, profile, done) {
+    }, function (req, token, tokenSecret, profile, done) {
         // TODO How about using process.nextTick() for code below
-        User.findOne({ 'yahoo.id' : profile.id },
+        User.findOne({ 'twitter.id' : profile.id },
             function (err, user) {
                 if (err) {
                     console.error(err);
@@ -83,7 +95,7 @@ var setPassportStrategy = function () {
                 }
 
                 if (user) {
-                    console.log('yahoo user already exists!');
+                    console.log('twitter user already exists!');
                     return done(null, user);
                 }
 
@@ -103,13 +115,13 @@ var setPassportStrategy = function () {
                     }
                 }
 
-                // append yahoo profile
-                changedUser.yahoo.id = profile.id;
-                changedUser.yahoo.token = token;
-                changedUser.yahoo.refreshToken = refreshToken;
-                changedUser.yahoo.displayName = 
-                changedUser.yahoo.email = 
-                console.log(changedUser.yahoo);
+                // append twitter profile
+                changedUser.twitter.id = profile.id;
+                changedUser.twitter.token = token;
+                changedUser.twitter.tokenSecret = tokenSecret;
+                changedUser.twitter.displayName = profile.displayName;
+                changedUser.twitter.photo = profile.photos[0].value;
+
                 changedUser.save(function (err) {
                     if (err) {
                         console.error(err);

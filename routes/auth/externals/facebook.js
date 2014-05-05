@@ -1,8 +1,8 @@
 var passport = require('passport');
-var Strategy = require('passport-twitter').Strategy;
-var tokenizer = require('./utils/tokenizer');
+var Strategy = require('passport-facebook').Strategy;
+var tokenizer = require('../utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
-var twitterInfo = require('./utils/oauth-info').twitter;
+var facebookInfo = require('../utils/oauth-info').facebook;
 
 var initialize = function (router) {
     setPassportStrategy();
@@ -11,64 +11,52 @@ var initialize = function (router) {
 
 var setRouter = function (router) {
     // login (authenticate)
-    router.get('/auth/login/twitter',
-            passport.authenticate('twitter', {
-                scope : 'email'
+    router.get('/auth/login/facebook',
+            passport.authenticate('facebook', {
+                scope : 'email user_birthday'
             })
     );
 
-    router.get('/auth/login/twitter/callback',
-            passport.authenticate('twitter', {
-                successRedirect: '/auth/login/twitter/callback/success',
-                failureRedirect: '/auth/login/twitter/callback/failure'
+    router.get('/auth/login/facebook/callback',
+            passport.authenticate('facebook', {
+                successRedirect: '/auth/login/facebook/callback/success',
+                failureRedirect: '/auth/login/facebook/callback/failure'
             })
     );
 
-    router.get('/auth/login/twitter/callback/:state', function (req, res) {
+    router.get('/auth/login/facebook/callback/:state', function (req, res) {
         if (req.params.state == 'success') {
-            console.log('succss: ' + req.user.access_token);
-            res.render('auth_popup', {
+            res.render('extenral_account_oauth', {
                 state: 'success',
                 data: req.user.access_token
             });
         } else {
-            res.render('auth_popup', { 
+            res.render('extenral_account_oauth', { 
                 state: 'failure', 
                 data: {
-                    message: "Twitter Authentication failed :("
+                    message: "Facebook authentication failed :("
                 }
             });
         }
     });
 
     // connect to current session
-    router.get('/auth/connect/twitter',
-            passport.authorize('twitter', {
+    router.get('/auth/connect/facebook',
+            passport.authorize('facebook', {
                 scope : 'email'
             })
     );
 
-    // TODO WHY can't define one more as url callback for oauth?
-    /*
-    router.get('/auth/connect/twitter/callback',
-            passport.authorize('twitter', {
-                successRedirect: '/profile',
-                failureRedirect: '/auth/connect/twitter',
-                failureFlash: true
-            })
-    );
-    */
-
     // disconnect from current session
-    router.get('/auth/disconnect/twitter',
+    router.get('/auth/disconnect/facebook',
             function (req, res) {
-                console.log('disconnect twitter');
+                console.log('disconnect facebook');
                 if (!req.user) {
                     res.send(401, { reason: 'not-authenticated' });
                 } else {
                     var user = req.user;
-                    user.twitter = undefined;
-                    console.log('twitter info: ' + req.user.twitter);
+                    user.facebook = undefined;
+                    console.log('facebook info: ' + req.user.facebook);
                     user.save(function (err) {
                         if (err) {
                             console.error(err);
@@ -81,13 +69,14 @@ var setRouter = function (router) {
 
 var setPassportStrategy = function () {
     passport.use(new Strategy({
-        consumerKey: twitterInfo.consumerKey,
-        consumerSecret: twitterInfo.consumerSecret,
-        callbackURL: twitterInfo.callbackURL,
+        clientID: facebookInfo.appId,
+        clientSecret: facebookInfo.appSecret,
+        callbackURL: facebookInfo.callbackURL,
+        //profileFields: ['id', 'displayName', 'photos'],
         passReqToCallback: true
-    }, function (req, token, tokenSecret, profile, done) {
+    }, function (req, token, refreshToken, profile, done) {
         // TODO How about using process.nextTick() for code below
-        User.findOne({ 'twitter.id' : profile.id },
+        User.findOne({ 'facebook.id' : profile.id },
             function (err, user) {
                 if (err) {
                     console.error(err);
@@ -95,7 +84,7 @@ var setPassportStrategy = function () {
                 }
 
                 if (user) {
-                    console.log('twitter user already exists!');
+                    console.log('facebook user already exists!');
                     return done(null, user);
                 }
 
@@ -115,13 +104,13 @@ var setPassportStrategy = function () {
                     }
                 }
 
-                // append twitter profile
-                changedUser.twitter.id = profile.id;
-                changedUser.twitter.token = token;
-                changedUser.twitter.tokenSecret = tokenSecret;
-                changedUser.twitter.displayName = profile.displayName;
-                changedUser.twitter.photo = profile.photos[0].value;
-
+                // append facebook profile
+                changedUser.facebook.id = profile.id;
+                changedUser.facebook.token = token;
+                changedUser.facebook.refreshToken = refreshToken;
+                changedUser.facebook.displayName = profile.name.familyName + ' ' + profile.name.givenName;
+                changedUser.facebook.email = (profile.emails[0].value || '').toLowerCase();
+                console.log(changedUser.facebook);
                 changedUser.save(function (err) {
                     if (err) {
                         console.error(err);

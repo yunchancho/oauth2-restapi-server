@@ -9,32 +9,34 @@ var initialize = function (router) {
 };
 
 var setPassportStrategy = function () {
-    passport.use(new Strategy(function (token, done) {
-        var resolved;
-        try {
-            resolved = tokenizer.resolve(token);
-        } catch(err) {
-            return done(null, false, {
-                reason: 'invalid-access-token'
-            });
-        }
-        User.findOne({ '_id': resolved.iss }, function (err, user) {
+    passport.use(new Strategy({
+        passReqToCallback: true
+    }, function (req, token, done) {
+        tokenizer.validate(token, req.param('id'), function (err) {
             if (err) {
-                return done(err);
+                done(err);
             }
-            if (!user) {
-                return done(null, false, {
-                    reason: 'invalid-user'
-                });
-            }
-            // TODO define scope for detail authorization
-            return done(null, user, { scope: 'read' });
+
+            User.findOne({
+                '_id': req.param('id')
+            }, function (err, user) {
+                if (err) {
+                    return done(err);
+                }
+                if (!user) {
+                    return done(null, false, {
+                        reason: 'invalid-user'
+                    });
+                }
+                // TODO define scope for detail authorization
+                return done(null, user, { scope: 'read' });
+            });
         });
     }));
 };
 
 var setRouter = function (router) {
-    router.get('/api/profile', passport.authenticate('bearer', {
+    router.get('/api/profile/:id', passport.authenticate('bearer', {
         session: false 
     }), function (req, res) {
         console.log('send profile after checking authorization');

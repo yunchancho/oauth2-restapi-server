@@ -1,8 +1,8 @@
 var passport = require('passport');
 var Strategy = require('passport-github').Strategy;
-var tokenizer = require('./utils/tokenizer');
+var tokenizer = require('../utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
-var githubInfo = require('./utils/oauth-info').github;
+var githubInfo = require('../utils/oauth-info').github;
 
 var initialize = function (router) {
     setPassportStrategy();
@@ -22,12 +22,12 @@ var setRouter = function (router) {
 
     router.get('/auth/login/github/callback/:state', function (req, res) {
         if (req.params.state == 'success') {
-            res.render('auth_popup', {
+            res.render('extenral_account_oauth', {
                 state: 'success',
                 data: req.user.access_token
             });
         } else {
-            res.render('auth_popup', { 
+            res.render('extenral_account_oauth', { 
                 state: 'failure', 
                 data: {
                     message: "Github authentication failed :("

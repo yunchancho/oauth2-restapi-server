@@ -1,8 +1,8 @@
 var passport = require('passport');
-var Strategy = require('passport-facebook').Strategy;
-var tokenizer = require('./utils/tokenizer');
+var Strategy = require('passport-linkedin-oauth2').Strategy;
+var tokenizer = require('../utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
-var facebookInfo = require('./utils/oauth-info').facebook;
+var linkedinInfo = require('../utils/oauth-info').linkedin;
 
 var initialize = function (router) {
     setPassportStrategy();
@@ -11,52 +11,50 @@ var initialize = function (router) {
 
 var setRouter = function (router) {
     // login (authenticate)
-    router.get('/auth/login/facebook',
-            passport.authenticate('facebook', {
-                scope : 'email user_birthday'
+    router.get('/auth/login/linkedin',
+            passport.authenticate('linkedin', {
+                'state' : 'DCEEFWF45453sdffef424' 
+            }));
+
+    router.get('/auth/login/linkedin/callback',
+            passport.authenticate('linkedin', {
+                successRedirect: '/auth/login/linkedin/callback/success',
+                failureRedirect: '/auth/login/linkedin/callback/failure'
             })
     );
 
-    router.get('/auth/login/facebook/callback',
-            passport.authenticate('facebook', {
-                successRedirect: '/auth/login/facebook/callback/success',
-                failureRedirect: '/auth/login/facebook/callback/failure'
-            })
-    );
-
-    router.get('/auth/login/facebook/callback/:state', function (req, res) {
+    router.get('/auth/login/linkedin/callback/:state', function (req, res) {
         if (req.params.state == 'success') {
-            res.render('auth_popup', {
+            res.render('extenral_account_oauth', {
                 state: 'success',
                 data: req.user.access_token
             });
         } else {
-            res.render('auth_popup', { 
+            res.render('extenral_account_oauth', { 
                 state: 'failure', 
                 data: {
-                    message: "Facebook authentication failed :("
+                    message: "LinkedIn authentication failed :("
                 }
             });
         }
     });
 
     // connect to current session
-    router.get('/auth/connect/facebook',
-            passport.authorize('facebook', {
-                scope : 'email'
-            })
-    );
+    router.get('/auth/connect/linkedin',
+            passport.authenticate('linkedin', {
+                'state' : 'DCEEFWF45453sdffef424' 
+            }));
 
     // disconnect from current session
-    router.get('/auth/disconnect/facebook',
+    router.get('/auth/disconnect/linkedin',
             function (req, res) {
-                console.log('disconnect facebook');
+                console.log('disconnect linkedin');
                 if (!req.user) {
                     res.send(401, { reason: 'not-authenticated' });
                 } else {
                     var user = req.user;
-                    user.facebook = undefined;
-                    console.log('facebook info: ' + req.user.facebook);
+                    user.linkedin = undefined;
+                    console.log('linkedin info: ' + req.user.linkedin);
                     user.save(function (err) {
                         if (err) {
                             console.error(err);
@@ -69,14 +67,14 @@ var setRouter = function (router) {
 
 var setPassportStrategy = function () {
     passport.use(new Strategy({
-        clientID: facebookInfo.appId,
-        clientSecret: facebookInfo.appSecret,
-        callbackURL: facebookInfo.callbackURL,
-        //profileFields: ['id', 'displayName', 'photos'],
+        clientID: linkedinInfo.apiKey,
+        clientSecret: linkedinInfo.secretKey,
+        callbackURL: linkedinInfo.callbackURL,
+        scope: [ 'r_fullprofile', 'r_emailaddress' ],
         passReqToCallback: true
     }, function (req, token, refreshToken, profile, done) {
         // TODO How about using process.nextTick() for code below
-        User.findOne({ 'facebook.id' : profile.id },
+        User.findOne({ 'linkedin.id' : profile.id },
             function (err, user) {
                 if (err) {
                     console.error(err);
@@ -84,7 +82,7 @@ var setPassportStrategy = function () {
                 }
 
                 if (user) {
-                    console.log('facebook user already exists!');
+                    console.log('linkedin user already exists!');
                     return done(null, user);
                 }
 
@@ -104,13 +102,15 @@ var setPassportStrategy = function () {
                     }
                 }
 
-                // append facebook profile
-                changedUser.facebook.id = profile.id;
-                changedUser.facebook.token = token;
-                changedUser.facebook.refreshToken = refreshToken;
-                changedUser.facebook.displayName = profile.name.familyName + ' ' + profile.name.givenName;
-                changedUser.facebook.email = (profile.emails[0].value || '').toLowerCase();
-                console.log(changedUser.facebook);
+                // append linkedin profile
+                changedUser.linkedin.id = profile.id;
+                changedUser.linkedin.token = token;
+                changedUser.linkedin.refreshToken = refreshToken;
+                changedUser.linkedin.displayName = profile.displayName;
+                changedUser.linkedin.email = profile.emails[0].value;
+                changedUser.linkedin.industry = profile._json.industry;
+                changedUser.linkedin.headline = profile._json.headline;
+                changedUser.linkedin.photo = profile._json.pictureUrl;
                 changedUser.save(function (err) {
                     if (err) {
                         console.error(err);

@@ -1,8 +1,8 @@
 var passport = require('passport');
 var Strategy = require('passport-google-oauth').OAuth2Strategy;
-var tokenizer = require('./utils/tokenizer');
+var tokenizer = require('../utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
-var googleInfo = require('./utils/oauth-info').google;
+var googleInfo = require('../utils/oauth-info').google;
 
 var initialize = function (router) {
     setPassportStrategy();
@@ -26,12 +26,12 @@ var setRouter = function (router) {
 
     router.get('/auth/login/google/callback/:state', function (req, res) {
         if (req.params.state == 'success') {
-            res.render('auth_popup', {
+            res.render('extenral_account_oauth', {
                 state: 'success',
                 data: req.user.access_token
             });
         } else {
-            res.render('auth_popup', { 
+            res.render('extenral_account_oauth', { 
                 state: 'failure', 
                 data: {
                     message: "Google+ authentication failed :("

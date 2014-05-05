@@ -1,32 +1,78 @@
-var jwt = require('jwt-simple');
-var moment = require('moment');   
+var Token = require(__appbase_dirname + '/models/model-token');
+var utils = require('./utils');
 
-var tokenSecret = 'abc12345';
-var expire = moment().add('days', 7).valueOf();
-
-var createToken = function (userId) {
-    if (!userId) {
-        // TODO throw error more properly
-        throw Error();
+var createToken = function (clientId, userId, grantType, cb) {
+    var token = new Token();
+    token.accessToken = utils.uid(256);
+    if (grantType.token_refreshable) {
+        token.refreshToken = utils.uid(256);
     }
-    return jwt.encode({
-        iss: userId,
-        exp: expire,
-    }, tokenSecret);
+    token.expiredIn = grantType.token_duration;
+    token.clientId = clientId;
+    token.userId = userId;
+    // TODO add scope
+    token.save(function (err) {
+        if (err) {
+            return cb(err);
+        }
+        return cb(err, token);
+    });
 };
 
-var resolveToken = function (token) {
+var refreshToken = function (token, cb) {
     if (!token) {
-        throw Error();
+        cb(new Error());
     }
-    var resolved = jwt.decode(token, tokenSecret);
-    if (resolved.exp <= Date.now())  {
-        // TODO should send request to frontend to be reauthenticated 
-        // to get new access token
-        throw Error();
+
+    // recreate access token
+    token.accessToken = utils.uid(256);
+    token.createdTime = Date.now();
+    // TODO update scope
+    Token.update({
+        clientId: token.clientId,
+        userId: token.userId,
+        refreshToken: token.refreshToken
+    }, {
+        accessToken: token.accessToken,
+        createdTime: token.createdTime
+    }, function (err, result) {
+        if (err) {
+            return cb(new Error());
+        }
+        return cb(err, token);
+    });
+};
+
+var validateToken = function (accessToken, userId, cb) {
+    if (!accessToken) {
+        cb(new Error());
     }
-    return resolved;
+
+    Token.findOne({
+        accessToken: accessToken
+    }, function (err, token) {
+        if (err) {
+            cb(err);
+        }
+        if (!token) {
+            cb(new Error());
+        }
+        if (userId) {
+            if (userId !== token.userId) {
+            console.log('userId: ' + userId);
+            console.log('token.userId: ' + token.userId);
+                console.log('user id is not matched');
+                cb(new Error());
+            }
+        }
+        if ((Date.now() - token.createdTime) > (token.expiredIn * 1000)) {
+            console.log('token is expired!!');
+            cb(new Error());
+        }
+        return cb();
+    });
 };
 
 module.exports.create = createToken;
-module.exports.resolve = resolveToken;
+module.exports.refresh = refreshToken;
+module.exports.validate = validateToken;

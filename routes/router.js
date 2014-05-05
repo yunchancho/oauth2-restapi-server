@@ -11,9 +11,11 @@ var initialize = function (app) {
 };
 
 var setRootRoutes = function (router) {
+    /*
     router.get('/', isLogined, function (req, res) {
         res.json(req.user);
     });
+    */
 };
 
 var setAuthRoutes = function (router) {
@@ -32,23 +34,17 @@ var setAuthRoutes = function (router) {
     });
 
     require('./auth/local')(router);
-    require('./auth/twitter')(router);
-    require('./auth/facebook')(router);
-    require('./auth/google')(router);
-    require('./auth/yahoo')(router);
-    require('./auth/linkedin')(router);
-    require('./auth/github')(router);
+    require('./auth/authorize')(router);
+    require('./auth/externals/twitter')(router);
+    require('./auth/externals/facebook')(router);
+    require('./auth/externals/google')(router);
+    require('./auth/externals/yahoo')(router);
+    require('./auth/externals/linkedin')(router);
+    require('./auth/externals/github')(router);
 };
 
 var setApiRoutes = function (router) {
     require('./api/profile')(router);
-};
-
-var isLogined = function (req, res, next) {
-    if (req.isAuthenticated()) {
-        return next();
-    }
-    res.json(401, { reason: 'not-authenticated' });
 };
 
 var redirectHttps = function (req, res, next) {
