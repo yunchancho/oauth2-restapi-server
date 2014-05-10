@@ -15,7 +15,7 @@ var thirdPartyClientInfo = {
         predefine.oauth2.type.authorizationCode.name,
         predefine.oauth2.type.authorizationCode.token_refreshable
     ],
-    redirectURI: 'https://ec2-54-199-141-31.ap-northeast-1.compute.amazonaws.com:3443/auth/authorize/callback'
+    redirectURI: 'https://<your_3rd_party_backend_server>/callback'
 };
 var thirdPartyClient2Info = {
     name: 'Third_Party_Dummy_App2',

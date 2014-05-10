@@ -1,7 +1,7 @@
 Social-Logins
 =============
 
-`social-logins` is a prototype for login and connect with famous social networks. This prototype works on [node.js](http://nodejs.org) with [passport](http://github.com/jaredhanson/passport) as backend server and [angular.js](http://angularjs.org) frontend. This `social-logins` support the following social networks as default.
+`social-logins` is a prototype for login and connect with some social accounts. `social-logins` also provides oauth2 authorization for local resources. This prototype works on [node.js](http://nodejs.org) with [passport](http://github.com/jaredhanson/passport) and [oauth2orize](http://github.com/jaredhanson/oauth2orize) as backend server and [angular.js](http://angularjs.org) frontend. `social-logins` supports the following social accounts as default. Once frontend is loggined using social accounts or local account, frontend recieves access token issued by node.js backend server of `social-logins` so that it request some resources like user profile to backend server, passing the access token  
 
  - Twitter (OAuth1.0A)
  - Facebook (OAuth2)
@@ -11,22 +11,44 @@ Social-Logins
  - GitHub (OAuth2)
 
 `social-logins` provides the followings
- - **node.js backend** (server) for authentication and authorization from external frontends
-  - handling external requests RESTful API concept using express module
-  - authenticating session based way for local account 
-  - authenticating token based way for social networks using passport module
-  - maintaining user accounts using local database using mongoose module
-  - modulizing code along to supported social networks
-  - (TODO) support https protocol with SSL (TLS) for security
-  - (TODO) converting session based authentication to token based one for backend scalability
- - **angular.js frontend** (sample client) for rendering views dynamically and interacting with users
-  - supporting single page web app (that means page isn't refreshed)
-  - interacting with users using login/signup/profile views
-  - routing pages using $route angular service
-  - requesting backend resources using $resource angluar service
-  - recovering response error of http status 401
-  - supporting new window for external oauth authentications to avoid CORS problem due to ajax
-  - supporting bower script to maintian js libraries like angluar.js, bootstrap, fontawesome
+ - **node.js backend** (server) for oauth2 based authentication and authorization and REST API
+  - Access token for 1st party app and 3rd party apps  
+    1st party app (default frontend of `social-logins`) doesn't need to exchange specific code with its backend server to get access token,
+    because it can recieve user credentials from its users. So access token for 1st party app is issued using Resource Owner Password Credentials Grant 
+    And to let 3rd party apps use some REST API of our `social-logins`, you should provide specific way to 3rd party developers to register their apps for that.
+    Generally, API providers use their website for registeration of 3rd party app.
+    Backend server of `social-logins` simply registers one default app per each grant type, as well as 'resource owner password' for 1st party app.
+    You can test some flow of oauth2 specification using that apps
+    - '[Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#page-37)' for 1st party app (`social-logins` frontend)
+    - '[Authorization Code Grant](http://tools.ietf.org/html/rfc6749#page-24)' for 3rd party app
+    - '[Implicit Grant](http://tools.ietf.org/html/rfc6749#page-31)' for 3rd party app
+    - '[Client Credentials Grant](http://tools.ietf.org/html/rfc6749#page-40)' for 3rd party app
+  - REST API to get access token from backend server 
+    - /auth/authorize
+    - /auth/authorize/decision
+    - /auth/authorize/callback (Just for test of authorization code grant and implicit grant)
+    - /auth/token
+  - REST API to get resource. frontends surely should pass access token in request header(`Authorization: Bearer <access_token>`). 
+    - /api/profile/:id (`:id` means identifier of registered user of `social-logins`, not user's email)
+  - TLS(HTTPS) based communication 
+    - every data from frontends are passed securly using https protocol.
+    - even if http url is requested to backend server, the request is redirected as https url.
+      http://<server_domain>/auth/login --> https://<server_domain>/auth/login
+    - `social-logins` uses self signed certificates for TLS. But you can replace them to ones isseud by public CA.
+  - (TODO) Access Control based on `scope` of OAuth2
+    - if node.js backend uses `scope` on validation of requests with access token by frontends, 
+      it can provide access control mechanism for protecting its resource from improper request.
+      Currently, backend server of `social-logins` permits all resources if the request includes valid access token.
+
+ - **angular.js frontend** (1st party app) for rendering views dynamically and interacting with users
+  - Single page web app. That is, all pages are aren't refreshed because angluar.js get them using ajax
+  - Interaction with users using login/signup/profile views for social accounts and local account
+  - Page routing using `$route` angular.js service
+  - Call to REST API to get resources of backend resource using `$resource` angluar.js service
+  - Error Handling `401`(http authentication status) and recovering it
+  - Oauth based authentications of social accounts using new window to avoid CORS problem due to ajax
+  - Bower script to maintian js libraries like angluar.js, bootstrap, fontawesome
+  - (TODO) refactoring frontend along to OAuth2 flow
   - (TODO) applyig twitter's bootstrap fully to views
 
 You can add login for other social networks simply if you conform to structure of this prototype.
@@ -87,6 +109,83 @@ You can add a social network into `social-logins` simply if you do the following
     - add angular models on `/public/partials/profile.html` to show information of new social network account
 
 * You may find passport strategy module of other social networks in the [passport wiki](https://github.com/jaredhanson/passport/wiki/Strategies). If there isn't the passport strategy module that you want, you need to create new passport starategy module for use.
+
+## Usage of REST API for authentication and authorization 
+Currently `social-logins` doesn't use `scope` and `state` fields of OAuth2 spec (even if they are useful)
+every fields speicified as `REQUIRED` are requested or response in http header or body.
+Please refer OAuth2 specification about that.
+
+### /auth/authorize
+- description: Authorization Request
+- prerequisites: frontend MUST be loggined using user's credetial
+- required field in http request: 
+  - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.1 
+  - Implicit Grant: http://tools.ietf.org/html/rfc6749#section-4.2.1
+- response: html page for user to grant `social-logins` app
+
+### /auth/authorize/decision
+- description: Pass user's grant (allow or deny). This API is called from html page recieved due to /auth/authorize
+- required field in http request: transaction_id, allow (or deny) field
+- response: 
+  - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.2 
+  - Implicit Grant: http://tools.ietf.org/html/rfc6749#section-4.2.2
+
+### /auth/token
+- required field in http request: 
+  - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.3
+  - Resource Owner Password Credentials Grant: http://tools.ietf.org/html/rfc6749#section-4.3.2
+    * in case of login using local account, `usename` and `password` field should be like the following.
+     `username`: *user_email* (registered by signup)
+     `password`: *user_password* (registered by signup)
+    * in case of login using social accounts, `usename` and `password` field should be like the following.
+     `username`: 'twitter', 'facebook', 'google', 'yahoo', 'linkedin', 'github' (social account provider's name) 
+     `password`: *access_token* (issued by backend server `social-logins`)
+  - Client Credentials Grant: http://tools.ietf.org/html/rfc6749#section-4.4.2 
+- response
+  - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.4
+  - Resource Owner Password Credentials Grant: http://tools.ietf.org/html/rfc6749#section-4.3.3
+  - Client Credentials Grant: http://tools.ietf.org/html/rfc6749#section-4.4.3 
+
+Rresponse body is like the follwoing.
+``` javascript
+    {
+        "access_token": "91aQZKpvcWcc3i18YBw69Kh8hVkMTztjJJccZQfQksOXgDzU1QShXjccYjPQLDGM9kbXmqYMFxqNJErm9iBGfWlzbdFgvkJwCtGdPiK4RDpU0t0VNNbJ9YtdiWKPAgH4PPx4dAKsJ6mWoNbLjOdP6W0gUif9hSH4W2X5eRz8DXmAGGi4exwt8Zs6khMZ6DDGRcX0qULyg4vc2OaqLMHgNtC1DNzxCHSvyr66Vd3Wb9oYk6CeFjPDlxsGfJI7usmI",
+        "refresh_token": "E7CqMqFnGuGd1qJ9KsyIu5csd2sZau1ToQms0e45ZdtggfMOXYzrbaCVQDK6npBfBQXOMjJC3Fs8BkS3kpYHnV8XKFNzHw099wYRBKZA7nHle3CDmzzXCdVbEkskekAktnWPSNJsj6ZeY0dOYKB4sFzo1hRpGdlnPN6XlCXmQIPcyxrtdhjC4Vb5PbVZDY4vhlpOOfkIC0p4mT6kYAJG9WETgVKex5JbejpLd4x1Jq8SW2zaPtdHY8laWyTN36MP",
+        "expired_in": 60,
+        "token_type": "Bearer"
+    }
+```
+## Usage REST API for access of resources
+- /api/profile/:id
+  `:id` means identifier of registered user of `social-logins`, not user's email.
+  fronend can recieve `:id` as response's body like the following.
+``` javascript
+    {
+     id: 536c370794b87a15049813e9 
+    }
+```
+ - prerequisites: frontend MUST have access token issued by backend server
+ - required field in http request:
+   `Authorization` header field filled with `Bearer <access_token>` 
+``` javascript
+    GET /api/profile/536c370794b87a15049813e9 HTTP/1.1
+    Host: ec2-54-199-141-31.ap-northeast-1.compute.amazonaws.com:3443
+    Authorization: Bearer w9QWRQZIW8RiRtGEuYBC3J6RfbGv3Mg54Vi9vSUmL6LVMSitgBarGy9dQjG3HrsQ3KD1HwFkHcRRj4xE0QTDcsA3fhWAk8q00E4yzzoQnB9fkQ73PU7tn3FmMcKyvvu43K245SRfdIEckXIeEDvqMdO7V9VF3ScMMOA24HyrYr3UxtkWiVoGCtb7aOEHRT0hUmBKBYbxWNLpEWKoHjPEPXaOBs7204ItaMZAFXEO8JosM4hNu51CdPpmOaN5CzVL
+    Cache-Control: no-cache
+    Content-Type: application/x-www-form-urlencoded
+```
+ - response
+   - response body includes profile of requested user id
+``` javascript
+    {
+        "_id": "536c370794b87a15049813e9",
+        "__v": 0,
+        "local": {
+            "password": "$2a$08$3qtatVznZEvQPvnARcA.du9uXYkT00Y7SXNIdC7TdkL/KT0VuoKH.",
+            "email": "vinebrancho@gmail.com"
+        }
+    }
+```
 
 ## Credits
 
