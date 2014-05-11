@@ -1,7 +1,7 @@
-Social-Logins
+social-oauth2-provider
 =============
 
-`social-logins` is a prototype for login and connect with some social accounts. `social-logins` also provides oauth2 authorization for local resources. This prototype works on [node.js](http://nodejs.org) with [passport](http://github.com/jaredhanson/passport) and [oauth2orize](http://github.com/jaredhanson/oauth2orize) as backend server and [angular.js](http://angularjs.org) frontend. `social-logins` supports the following social accounts as default. Once frontend is loggined using social accounts or local account, frontend recieves access token issued by node.js backend server of `social-logins` so that it request some resources like user profile to backend server, passing the access token  
+`social-oauth2-provider` is a prototype for logined social accounts to be authorized via OAuth2 by our backend server, so that they can access resources of our backendwith access token. Additionally `social-oauth2-provider` provides signup and login feature for local account which also is authorized via OAuth2 for accessing resources of backend server. This prototype works on [node.js](http://nodejs.org) with [passport](http://github.com/jaredhanson/passport) and [oauth2orize](http://github.com/jaredhanson/oauth2orize) as backend server and [angular.js](http://angularjs.org) frontend. `social-oauth2-provider` supports the following social accounts as default. Once frontend is logined using social accounts or local account, frontend recieves access token issued by node.js backend server of `social-oauth2-provider` so that it request some resources like user profile to backend server, passing the access token  
 
  - Twitter (OAuth1.0A)
  - Facebook (OAuth2)
@@ -10,16 +10,16 @@ Social-Logins
  - LinkedIn (OAuth2)
  - GitHub (OAuth2)
 
-`social-logins` provides the followings
+`social-oauth2-provider` provides the followings
  - **node.js backend** (server) for oauth2 based authentication and authorization and REST API
   - Access token for 1st party app and 3rd party apps  
-    1st party app (default frontend of `social-logins`) doesn't need to exchange specific code with its backend server to get access token,
+    1st party app (default frontend of `social-oauth2-provider`) doesn't need to exchange specific code with its backend server to get access token,
     because it can recieve user credentials from its users. So access token for 1st party app is issued using Resource Owner Password Credentials Grant 
-    And to let 3rd party apps use some REST API of our `social-logins`, you should provide specific way to 3rd party developers to register their apps for that.
+    And to let 3rd party apps use some REST API of our `social-oauth2-provider`, you should provide specific way to 3rd party developers to register their apps for that.
     Generally, API providers use their website for registeration of 3rd party app.
-    Backend server of `social-logins` simply registers one default app per each grant type, as well as 'resource owner password' for 1st party app.
+    Backend server of `social-oauth2-provider` simply registers one default app per each grant type, as well as 'resource owner password' for 1st party app.
     You can test some flow of oauth2 specification using that apps
-    - '[Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#page-37)' for 1st party app (`social-logins` frontend)
+    - '[Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#page-37)' for 1st party app (`social-oauth2-provider` frontend)
     - '[Authorization Code Grant](http://tools.ietf.org/html/rfc6749#page-24)' for 3rd party app
     - '[Implicit Grant](http://tools.ietf.org/html/rfc6749#page-31)' for 3rd party app
     - '[Client Credentials Grant](http://tools.ietf.org/html/rfc6749#page-40)' for 3rd party app
@@ -29,16 +29,16 @@ Social-Logins
     - /auth/authorize/callback (Just for test of authorization code grant and implicit grant)
     - /auth/token
   - REST API to get resource. frontends surely should pass access token in request header(`Authorization: Bearer <access_token>`). 
-    - /api/profile/:id (`:id` means identifier of registered user of `social-logins`, not user's email)
+    - /api/profile/:id (`:id` means identifier of registered user of `social-oauth2-provider`, not user's email)
   - TLS(HTTPS) based communication 
     - every data from frontends are passed securly using https protocol.
     - even if http url is requested to backend server, the request is redirected as https url.
       http://<server_domain>/auth/login --> https://<server_domain>/auth/login
-    - `social-logins` uses self signed certificates for TLS. But you can replace them to ones isseud by public CA.
+    - `social-oauth2-provider` uses self signed certificates for TLS. But you can replace them to ones isseud by public CA.
   - (TODO) Access Control based on `scope` of OAuth2
     - if node.js backend uses `scope` on validation of requests with access token by frontends, 
       it can provide access control mechanism for protecting its resource from improper request.
-      Currently, backend server of `social-logins` permits all resources if the request includes valid access token.
+      Currently, backend server of `social-oauth2-provider` permits all resources if the request includes valid access token.
 
  - **angular.js frontend** (1st party app) for rendering views dynamically and interacting with users
   - Single page web app. That is, all pages are aren't refreshed because angluar.js get them using ajax
@@ -56,22 +56,22 @@ You can add login for other social networks simply if you conform to structure o
 ## Install
 prerequisites are the followings :
 
- - clone `social-logins` repo into your local machine
+ - clone `social-oauth2-provider` repo into your local machine
 
-    $ git clone git@github.com:vinebrancho/social-logins.git
+    $ git clone git@github.com:vinebrancho/social-oauth2-provider.git
 
  - install mongodb into your local machine
 
-And then, You can install `social-logins` using the following.
+And then, You can install `social-oauth2-provider` using the following.
 
     $ npm install
   
 ## Usage
-You can run node server with `social-logins` just using the following.
+You can run node server with `social-oauth2-provider` just using the following.
 
     $ npm start
 
-And the, you can see Login UI of `social-logins` on your web browser by connecting to your node server url
+And the, you can see Login UI of `social-oauth2-provider` on your web browser by connecting to your node server url
 
     http://<your_node_server.com>/
     
@@ -89,8 +89,8 @@ In order to login or connect with accouts of social networks, you **must** chang
 
 By this way, after replacing all default social networks to your own ones, your application can login or connect with all social networks. 
 
-## Add other social networks to social-logins
-You can add a social network into `social-logins` simply if you do the followings step by step.
+## Add other social networks to social-oauth2-provider
+You can add a social network into `social-oauth2-provider` simply if you do the followings step by step.
 
 1. Get application id(or key), secret from the social network provider
 2. Add them into `routes/oauth-info.js`
@@ -110,18 +110,18 @@ You can add a social network into `social-logins` simply if you do the following
 
 * You may find passport strategy module of other social networks in the [passport wiki](https://github.com/jaredhanson/passport/wiki/Strategies). If there isn't the passport strategy module that you want, you need to create new passport starategy module for use.
 
-## Usage of REST API for authentication and authorization 
-Currently `social-logins` doesn't use `scope` and `state` fields of OAuth2 spec (even if they are useful)
+## API Usage for authentication and authorization 
+Currently `social-oauth2-provider` doesn't use `scope` and `state` fields of OAuth2 spec (even if they are useful)
 every fields speicified as `REQUIRED` are requested or response in http header or body.
 Please refer OAuth2 specification about that.
 
 ### /auth/authorize
 - description: request authorization of 3rd party app
-- prerequisites: frontend MUST be loggined using user's credetial
+- prerequisites: frontend MUST be logined using user's credetial
 - required field in http request: 
   - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.1 
   - Implicit Grant: http://tools.ietf.org/html/rfc6749#section-4.2.1
-- response: html page for user to grant `social-logins` app
+- response: html page for user to grant `social-oauth2-provider` app
 
 ### /auth/authorize/decision
 - description: pass user's grant (allow or deny). This API is called from html page recieved due to /auth/authorize
@@ -140,7 +140,7 @@ Please refer OAuth2 specification about that.
      `password`: *user_password* (registered by signup)
     * in case of login using social accounts, `usename` and `password` field should be like the following.
      `username`: 'twitter', 'facebook', 'google', 'yahoo', 'linkedin', 'github' (social account provider's name) 
-     `password`: *access_token* (issued by backend server `social-logins`)
+     `password`: *access_token* (issued by backend server `social-oauth2-provider`)
   - Client Credentials Grant: http://tools.ietf.org/html/rfc6749#section-4.4.2 
 - response
   - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.4
@@ -156,14 +156,14 @@ Rresponse body is like the follwoing.
         "token_type": "Bearer"
     }
 ```
-## Usage REST API for access of resources
+## REST API Usage for access of resources
 ### /api/profile/:id
 - description: request profile data of user 
-  `:id` means identifier of registered user of `social-logins`, not user's email.
+  `:id` means identifier of registered user of `social-oauth2-provider`, not user's email.
   fronend can recieve `:id` as response's body like the following.
 ``` javascript
     {
-     id: 536c370794b87a15049813e9 
+        id: 536c370794b87a15049813e9 
     }
 ```
 - prerequisites: frontend MUST have access token issued by backend server
