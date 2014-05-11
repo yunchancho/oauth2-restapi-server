@@ -116,7 +116,7 @@ every fields speicified as `REQUIRED` are requested or response in http header o
 Please refer OAuth2 specification about that.
 
 ### /auth/authorize
-- description: Authorization Request
+- description: request authorization of 3rd party app
 - prerequisites: frontend MUST be loggined using user's credetial
 - required field in http request: 
   - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.1 
@@ -124,13 +124,14 @@ Please refer OAuth2 specification about that.
 - response: html page for user to grant `social-logins` app
 
 ### /auth/authorize/decision
-- description: Pass user's grant (allow or deny). This API is called from html page recieved due to /auth/authorize
+- description: pass user's grant (allow or deny). This API is called from html page recieved due to /auth/authorize
 - required field in http request: transaction_id, allow (or deny) field
 - response: 
   - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.2 
   - Implicit Grant: http://tools.ietf.org/html/rfc6749#section-4.2.2
 
 ### /auth/token
+- description: request issuing access token.  
 - required field in http request: 
   - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.3
   - Resource Owner Password Credentials Grant: http://tools.ietf.org/html/rfc6749#section-4.3.2
@@ -156,7 +157,8 @@ Rresponse body is like the follwoing.
     }
 ```
 ## Usage REST API for access of resources
-- /api/profile/:id
+### /api/profile/:id
+- description: request profile data of user 
   `:id` means identifier of registered user of `social-logins`, not user's email.
   fronend can recieve `:id` as response's body like the following.
 ``` javascript
@@ -164,8 +166,8 @@ Rresponse body is like the follwoing.
      id: 536c370794b87a15049813e9 
     }
 ```
- - prerequisites: frontend MUST have access token issued by backend server
- - required field in http request:
+- prerequisites: frontend MUST have access token issued by backend server
+- required field in http request:
    `Authorization` header field filled with `Bearer <access_token>` 
 ``` javascript
     GET /api/profile/536c370794b87a15049813e9 HTTP/1.1
@@ -174,8 +176,7 @@ Rresponse body is like the follwoing.
     Cache-Control: no-cache
     Content-Type: application/x-www-form-urlencoded
 ```
- - response
-   - response body includes profile of requested user id
+- response body includes profile of requested user id
 ``` javascript
     {
         "_id": "536c370794b87a15049813e9",
