@@ -48,7 +48,10 @@ var setGrant = function(server) {
         // check this client is matched to this grant type
         if (client.grantType[0] !==
             predefine.oauth2.type.authorizationCode.name) {
-            done(null, false);
+            return done(new oauth2orize.AuthorizationError(
+                    'This client can\'t use authroization_code grant type',
+                    'unauthorized_client'
+            ));
         }
 
         AuthorizeCode.findOne({
@@ -58,7 +61,10 @@ var setGrant = function(server) {
         }, function (err, authCode) {
             console.log('enter authorization_code type for grant'); 
             if (err) {
-                return done(err);
+                return done(new oauth2orize.AuthorizationError(
+                        'Error occurs during finding code',
+                        'server_error'
+                ));
             }
             if (authCode === null) {
                 // TODO how to generate 'authorize code'
@@ -72,7 +78,10 @@ var setGrant = function(server) {
                 authCode.userId = user.id; // this id is identifier of User, not email
                 authCode.save(function (err) {
                     if (err) {
-                        return done(err);
+                        return done(new oauth2orize.AuthorizationError(
+                                'Error occurs during saving code',
+                                'server_error'
+                        ));
                     }
                     console.log(authCode);
                     return done(null, code);
@@ -87,7 +96,10 @@ var setGrant = function(server) {
         // check this client is matched to this grant type
         if (client.grantType[0] !==
             predefine.oauth2.type.implicit.name) {
-            done(null, false);
+            return done(new oauth2orize.AuthorizationError(
+                    'This client can\'t use impicit grant type',
+                    'unauthorized_client'
+            ));
         }
 
         Token.findOne({
@@ -95,13 +107,19 @@ var setGrant = function(server) {
             'userId': user.id
         }, function (err, accessToken) {
             if (err) {
-                return done(err);
+                return done(new oauth2orize.TokenError(
+                        'Error occurs during finding token',
+                        'server_error'
+                ));
             }
             if (accessToken === null) {
                 tokenizer.create(client.clientId, user.id,
                     predefine.oauth2.type.implicit, function (err, token) {
                         if (err) {
-                            return done(err);
+                            return done(new oauth2orize.TokenError(
+                                    'Error occurs during creating token',
+                                    'server_error'
+                            ));
                         }
                         return done(null,
                             newToken.accessToken,
@@ -132,7 +150,10 @@ var setExchangeToken = function(server) {
         // check this client is matched to this grant type
         if (client.grantType[0] !==
             predefine.oauth2.type.authorizationCode.name) {
-            done(null, false);
+            return done(new oauth2orize.TokenError(
+                    'This client can\'t use authorization_code grant type',
+                    'unauthorized_client'
+            ));
         }
 
         AuthorizeCode.findOne({
@@ -141,10 +162,16 @@ var setExchangeToken = function(server) {
             'redirectURI': redirectURI
         }, function (err, authCode) {
             if (err) {
-                return done(err);
+                return done(new oauth2orize.TokenError(
+                        'Error occurs during finding given code',
+                        'server_error'
+                ));
             }
             if (authCode === null) {
-                return done(null, false);
+                return done(new oauth2orize.TokenError(
+                        'The provided authorization grant is not valid',
+                        'invalid_grant'
+                ));
             }
 
             // we need to check if access token for this user exists 
@@ -153,14 +180,20 @@ var setExchangeToken = function(server) {
                 'userId': authCode.userId
             }, function (err, token) {
                 if (err) {
-                    return done(err);
+                    return done(new oauth2orize.TokenError(
+                            'Error occurs during finding token',
+                            'server_error'
+                    ));
                 }
                 if (token === null) {
                     tokenizer.create(authCode.clientId, authCode.userId,
                         predefine.oauth2.type.authorizationCode,
                         function (err, newToken) {
                             if (err) {
-                                return done(err);
+                                return done(new oauth2orize.TokenError(
+                                        'Error occurs during creating token',
+                                        'server_error'
+                                ));
                             }
                             return done(null,
                                 newToken.accessToken,
@@ -185,7 +218,10 @@ var setExchangeToken = function(server) {
         // check this client is matched to this grant type
         if (client.grantType[0] !==
             predefine.oauth2.type.password.name) {
-            done(null, false);
+            return done(new oauth2orize.TokenError(
+                    'This client can\'t use password grant type',
+                    'unauthorized_client'
+            ));
         }
 
         console.log('enter exchange function \'password\' grant type');
@@ -220,14 +256,23 @@ var setExchangeToken = function(server) {
 
         User.findOne(query, function (err, user) {
             if (err) {
-                return done(err);
+                return done(new oauth2orize.TokenError(
+                        'Error occurs during finding token',
+                        'server_error'
+                ));
             }
             if (user === null) {
-                return done(null, false);
+                return done(new oauth2orize.TokenError(
+                        'resource owner credential is not correct',
+                        'invalid_grant'
+                ));
             }
             if (isLocalAccount) {
                 if (!user.validPassword(password)) {
-                    return done(null, false);
+                    return done(new oauth2orize.TokenError(
+                            'resource owner credential is not correct',
+                            'invalid_grant'
+                    ));
                 }
             }
 
@@ -236,16 +281,21 @@ var setExchangeToken = function(server) {
                 'clientId': client.clientId,
                 'userId': user.id
             }, function (err, token) {
-
                 if (err) {
-                    return done(err);
+                    return done(new oauth2orize.TokenError(
+                            'Error occurs during finding token',
+                            'server_error'
+                    ));
                 }
                 if (token === null) {
                     tokenizer.create(client.clientId, user.id,
                         predefine.oauth2.type.password,
                         function (err, newToken) {
                             if (err) {
-                                return done(err);
+                                return done(new oauth2orize.TokenError(
+                                        'Error occurs during creating token',
+                                        'server_error'
+                                ));
                             }
                             return done(null,
                                 newToken.accessToken,
@@ -270,21 +320,30 @@ var setExchangeToken = function(server) {
         // check this client is matched to this grant type
         if (client.grantType[0] !==
             predefine.oauth2.type.clientCredentials.name) {
-            done(null, false);
+            return done(new oauth2orize.TokenError(
+                    'This client can\'t use client credential grant type',
+                    'unauthorized_client'
+            ));
         }
 
         Token.findOne({
             'clientId': client.clientId
         }, function (err, token) {
             if (err) {
-                return done(err);
+                return done(new oauth2orize.TokenError(
+                        'Error occurs during finding token',
+                        'server_error'
+                ));
             }
             if (token === null) {
                 tokenizer.create(client.clientId, null,
                     predefine.oauth2.type.clientCredentials,
                     function (err, newToken) {
                         if (err) {
-                            return done(err);
+                            return done(new oauth2orize.TokenError(
+                                    'Error occurs during creating token',
+                                    'server_error'
+                            ));
                         }
                         return done(null,
                             newToken.accessToken,
@@ -308,7 +367,10 @@ var setExchangeToken = function(server) {
         // 'implicit grant' type is not permitted by OAuth2 spec  
         if (client.grantType[0] ==
             predefine.oauth2.type.implicit.name) {
-            done(null, false);
+            return done(new oauth2orize.TokenError(
+                    'This client can\'t use client refresh token grant type',
+                    'unauthorized_client'
+            ));
         }
 
         Token.findOne({
@@ -316,15 +378,24 @@ var setExchangeToken = function(server) {
             refreshToken: refreshToken
         }, function (err, token) {
             if (err) {
-                return done(err);
+                return done(new oauth2orize.TokenError(
+                        'Error occurs during finding token',
+                        'server_error'
+                ));
             }
             if (!token) {
-                return done(null, false);
+                return done(new oauth2orize.TokenError(
+                        'This refresh token doesn\'t exist',
+                        'invalid_grant'
+                ));
             }
 
             tokenizer.refresh(token, function (err, updatedToken) {
                 if (err) {
-                    return done(err);
+                    return done(new oauth2orize.TokenError(
+                            'Error occurs during refreshing token',
+                            'server_error'
+                    ));
                 }
                 return done(null,
                     updatedToken.accessToken,
@@ -339,16 +410,23 @@ var setExchangeToken = function(server) {
 // user authorization endpoint
 var authorize = function () {
     return [
+        error(),
         server.authorization(function (clientId, redirectURI, done) {
            OauthClient.findOne({
                'clientId': clientId,
                'redirectURI': redirectURI
            }, function (err, oauthClient) {
                if (err) {
-                   return done(err);
+                    return done(new oauth2orize.AuthorizationError(
+                            'Error occurs during finding OAuth client',
+                            'server_error'
+                    ));
                }
                if (oauthClient === null) {
-                   return done(null, false);
+                    return done(new oauth2orize.AuthorizationError(
+                            'There is not matched client',
+                            'unauthorized_client'
+                    ));
                }
                return done(null, oauthClient, redirectURI);
            });
@@ -368,10 +446,20 @@ var decision = function () {
 };
 
 var token = function () {
-    return [server.token(), server.errorHandler()];
-}
+    return [error(), server.token(), server.errorHandler()];
+};
+
+var error = function() {
+    return function (err, req, res, next) {
+        if (err) {
+            server.errorHandler()(err, req, res);
+        }
+    };
+};
+    
 
 exports.initialize = initialize;
 exports.authorize = authorize;
 exports.decision = decision;
 exports.token = token;
+exports.error = error;

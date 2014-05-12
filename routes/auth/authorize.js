@@ -3,6 +3,7 @@ var BasicStrategy = require('passport-http').BasicStrategy;
 var ClientPasswordStrategy =
         require('passport-oauth2-client-password').Strategy;
 var OauthClient = require(__appbase_dirname + '/models/model-oauthclient');
+var oauth2orize = require('oauth2orize');
 var oauth2Server = require('./oauth2-server');
 var oauth2TestClients = require('./oauth2-test-clients');
 var url = require('url');
@@ -24,12 +25,18 @@ var setPassportStrategy = function () {
             clientSecret: clientSecret
         }, function (err, oauthClient) {
             if (err) {
-                done(err);
+                var error = new oauth2orize.TokenError(
+                    'server error during validating client credential',
+                    'server_error');
+                return done(error);
             }
             if (oauthClient === null) {
-                return done(null, false);
+                // this error will be handled by oauth2orize
+                var error = new oauth2orize.TokenError(
+                    'Client authentication failed',
+                    'invalid_client');
+                return done(error);
             }
-            console.log('1');
             return done(null, oauthClient);
         });
     }));
@@ -40,10 +47,16 @@ var setPassportStrategy = function () {
             clientSecret: clientSecret
         }, function (err, oauthClient) {
             if (err) {
-                done(err);
+                return done(new oauth2orize.TokenError(
+                        'server error during validating client credential',
+                        'server_error'
+                ));
             }
             if (oauthClient === null) {
-                return done(null, false);
+                return done(new oauth2orize.TokenError(
+                        'Client authentication failed',
+                        'invalid_client'
+                ));
             }
             return done(null, oauthClient);
         });
@@ -59,7 +72,8 @@ var setRouter = function (router) {
                 'oauth2-client-password'
             ], { session : false }), oauth2Server.token());
 
-    // just for test of dummy 3rd party app
+    // TODO in real practice, this route should be removed!!
+    // this is just for test of dummy 3rd party app
     // if there is no error, this 3rd party app server should exchange token using received code
     // otherwise, 3rd party app server should handle error along to error type
     // (we just print received code here)
@@ -83,7 +97,12 @@ var isLogined = function (req, res, next) {
     if (req.isAuthenticated()) {
         return next();
     }
-    res.json(401, { reason: 'not-authenticated' });
+
+    // this error will be handled by oauth2orize
+    var error = new oauth2orize.TokenError(
+            'authorization server denied this request',
+            'access_denied');
+    return next(error);
 };
 
 module.exports = initialize;

@@ -2,6 +2,7 @@ var passport = require('passport');
 var Strategy = require('passport-http-bearer').Strategy;
 var tokenizer = require('../auth/utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
+var oauth2Server = require('../auth/oauth2-server');
 
 var initialize = function (router) {
     setPassportStrategy();
@@ -14,7 +15,7 @@ var setPassportStrategy = function () {
     }, function (req, token, done) {
         tokenizer.validate(token, req.param('id'), function (err) {
             if (err) {
-                done(err);
+                return done(err);
             }
 
             User.findOne({
@@ -38,7 +39,7 @@ var setPassportStrategy = function () {
 var setRouter = function (router) {
     router.get('/api/profile/:id', passport.authenticate('bearer', {
         session: false 
-    }), function (req, res) {
+    }), oauth2Server.error(), function (req, res) {
         console.log('send profile after checking authorization');
         res.json(req.user);
     });

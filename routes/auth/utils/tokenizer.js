@@ -1,3 +1,4 @@
+var oauth2orize = require('oauth2orize');
 var Token = require(__appbase_dirname + '/models/model-token');
 var utils = require('./utils');
 
@@ -21,7 +22,7 @@ var createToken = function (clientId, userId, grantType, cb) {
 
 var refreshToken = function (token, cb) {
     if (!token) {
-        cb(new Error());
+        return cb(new Error());
     }
 
     // recreate access token
@@ -45,29 +46,30 @@ var refreshToken = function (token, cb) {
 
 var validateToken = function (accessToken, userId, cb) {
     if (!accessToken) {
-        cb(new Error());
+        return cb(new oauth2orize.TokenError(
+                'access token is not given',
+                'invalid_request'));
     }
 
     Token.findOne({
-        accessToken: accessToken
+        accessToken: accessToken,
+        userId: userId
     }, function (err, token) {
         if (err) {
-            cb(err);
+            return cb(err);
         }
-        if (!token) {
-            cb(new Error());
+
+        if (token === null) {
+            return cb(new oauth2orize.TokenError(
+                    'There is not matched access token',
+                    'invalid_grant'));
         }
-        if (userId) {
-            if (userId !== token.userId) {
-            console.log('userId: ' + userId);
-            console.log('token.userId: ' + token.userId);
-                console.log('user id is not matched');
-                cb(new Error());
-            }
-        }
+
         if ((Date.now() - token.createdTime) > (token.expiredIn * 1000)) {
             console.log('token is expired!!');
-            cb(new Error());
+            return cb(new oauth2orize.TokenError(
+                    'given access token was expired',
+                    'invalid_grant'));
         }
         return cb();
     });
