@@ -25,7 +25,7 @@
     "passport-github" : "*",
     "passport-http" : "*",
     "passport-http-bearer" : "*",
-    "passport-oauth2-client-password" : "*",
+    "passport-oauth2-public-client" : "*",
     "oauth2orize": "*",
     "jwt-simple": "*",
     "connect-flash" : "*", 	

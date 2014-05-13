@@ -15,7 +15,7 @@ var thirdPartyClientInfo = {
         predefine.oauth2.type.authorizationCode.name,
         predefine.oauth2.type.authorizationCode.token_refreshable
     ],
-    redirectURI: 'https://<your_3rd_party_backend_server>/callback'
+    redirectURI: 'https://<your_3rd_app_backend_server_url>/callback'
 };
 var thirdPartyClient2Info = {
     name: 'Third_Party_Dummy_App2',
@@ -23,6 +23,20 @@ var thirdPartyClient2Info = {
         predefine.oauth2.type.clientCredentials.name,
         predefine.oauth2.type.clientCredentials.token_refreshable
     ]
+};
+var thirdPartyClient3Info = {
+    name: 'Third_Party_Dummy_App3',
+    grantType: [
+        predefine.oauth2.type.implicit.name,
+        predefine.oauth2.type.implicit.token_refreshable
+    ],
+    // TODO if you test for hybrid webapp,
+    // you can use 'localhost' for callback simply.
+    // but, when you test implicit grant for native app,
+    // you can replace redirect uri to one with custom scheme like the following
+    //  redirectURI: 'myapp://callback'
+
+    redirectURI: 'http://localhost/callback'
 };
 
 // This is helpful for a develper to validate oauth2 flow using postman of chrome browser
@@ -117,6 +131,30 @@ module.exports = function () {
             });
         } else {
             printClientInfo(thirdPartyClient, '3rd party app(client_credential) is already registered!');
+        }
+    });
+
+    // Add 3rd party App just for test 'implicit' type  
+    // this type is used to mobile native or webapp of standalone (without backend server)
+    OauthClient.findOne({
+        'name': thirdPartyClient3Info.name
+    }, function (err, thirdPartyClient) {
+        if (err) {
+            throw new Error();
+        }
+        if (thirdPartyClient === null) {
+            thirdPartyClient  = new OauthClient();
+            thirdPartyClient.name = thirdPartyClient3Info.name;
+            thirdPartyClient.redirectURI = thirdPartyClient3Info.redirectURI;
+            thirdPartyClient.grantType = thirdPartyClient3Info.grantType;
+            thirdPartyClient.save(function (err) {
+                if (err) {
+                    return new Error();
+                }
+                printClientInfo(thirdPartyClient, '3rd party app(implicit) is newly registered');
+            });
+        } else {
+            printClientInfo(thirdPartyClient, '3rd party app(implicit) is already registered!');
         }
     });
 };

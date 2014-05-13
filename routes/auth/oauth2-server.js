@@ -45,15 +45,6 @@ var setGrant = function(server) {
     // register grant for 'code' and 'token' (only two types are supported to user authorization endpoint)
     // The other grant types are directly requested to authroization server from client
     server.grant(oauth2orize.grant.code(function (client, redirectURI, user, ares, done) {
-        // check this client is matched to this grant type
-        if (client.grantType[0] !==
-            predefine.oauth2.type.authorizationCode.name) {
-            return done(new oauth2orize.AuthorizationError(
-                    'This client can\'t use authroization_code grant type',
-                    'unauthorized_client'
-            ));
-        }
-
         AuthorizeCode.findOne({
             'clientId': client.clientId,
             'userId': user.id,
@@ -92,47 +83,49 @@ var setGrant = function(server) {
         });
     }));
 
+    // this grant type is used for mobile app or browser based web app
+    // client id and redirect uri are needed for get access token
+    // in case of mobile native app, redirect uri would have custom scheme
+    //  e.g) fb00000000://authorize (this server will redirect it like the following)
+    //        --> fb00000000://authroize#access_token=2YotnFZFEjr1zCsicMWpA&expires_in=3600
+    // in case of mobile web app, redirect uri would be like the following
+    //  e.g) http://example.com/cb
+    //      --> http://example.com/cb#access_token=2YotnFZFEjr1zCsicMWpA&expires_in=3600
     server.grant(oauth2orize.grant.token(function (client, user, ares, done) {
-        // check this client is matched to this grant type
-        if (client.grantType[0] !==
-            predefine.oauth2.type.implicit.name) {
-            return done(new oauth2orize.AuthorizationError(
-                    'This client can\'t use impicit grant type',
-                    'unauthorized_client'
-            ));
-        }
-
+        console.log('clientId: ' + client.clientId);
+        console.log('userId: ' + user.id);
         Token.findOne({
             'clientId': client.clientId,
             'userId': user.id
-        }, function (err, accessToken) {
+        }, function (err, token) {
+            console.log('enter implicit grant'); 
             if (err) {
                 return done(new oauth2orize.TokenError(
                         'Error occurs during finding token',
                         'server_error'
                 ));
             }
-            if (accessToken === null) {
+            if (token === null) {
                 tokenizer.create(client.clientId, user.id,
-                    predefine.oauth2.type.implicit, function (err, token) {
+                    predefine.oauth2.type.implicit, function (err, newToken) {
                         if (err) {
                             return done(new oauth2orize.TokenError(
                                     'Error occurs during creating token',
                                     'server_error'
                             ));
                         }
+                        console.log('token for implicit type created!: ' + newToken);
                         return done(null,
                             newToken.accessToken,
-                            null, // implicit grant must not have refreshtoken
-                            { expired_in: newToken.expiredIn }
+                            { expires_in: newToken.expiredIn }
                         );
                 });
             } else {
+                console.log('token for implicit type exists!: ' + token);
                 // check access token expiration
                 return done(null,
                     token.accessToken,
-                    token.refreshToken,
-                    { expired_in: token.expiredIn }
+                    { expires_in: token.expiredIn }
                 );
             }
         });
@@ -147,15 +140,6 @@ var setExchangeToken = function(server) {
     // register exchange to get access token from authorization server
     // 1. grant_type = authorization_code 
     server.exchange(oauth2orize.exchange.code(function (client, code, redirectURI, done) {
-        // check this client is matched to this grant type
-        if (client.grantType[0] !==
-            predefine.oauth2.type.authorizationCode.name) {
-            return done(new oauth2orize.TokenError(
-                    'This client can\'t use authorization_code grant type',
-                    'unauthorized_client'
-            ));
-        }
-
         AuthorizeCode.findOne({
             'code': code,
             'clientId': client.clientId,
@@ -198,7 +182,7 @@ var setExchangeToken = function(server) {
                             return done(null,
                                 newToken.accessToken,
                                 newToken.refreshToken,
-                                { expired_in: newToken.expiredIn }
+                                { expires_in: newToken.expiredIn }
                             );
                     });
                 } else {
@@ -206,7 +190,7 @@ var setExchangeToken = function(server) {
                     return done(null,
                         token.accessToken,
                         token.refreshToken,
-                        { expired_in: token.expiredIn }
+                        { expires_in: token.expiredIn }
                     );
                 }
             });
@@ -215,15 +199,6 @@ var setExchangeToken = function(server) {
 
     // 2. grant_type = password
     server.exchange(oauth2orize.exchange.password(function(client, username, password, scope, done) {
-        // check this client is matched to this grant type
-        if (client.grantType[0] !==
-            predefine.oauth2.type.password.name) {
-            return done(new oauth2orize.TokenError(
-                    'This client can\'t use password grant type',
-                    'unauthorized_client'
-            ));
-        }
-
         console.log('enter exchange function \'password\' grant type');
         // client is already verified using middleware(basic), but not user
         // check username type 
@@ -300,7 +275,7 @@ var setExchangeToken = function(server) {
                             return done(null,
                                 newToken.accessToken,
                                 newToken.refreshToken,
-                                { expired_in: newToken.expiredIn }
+                                { expires_in: newToken.expiredIn }
                             );
                     });
                 } else {
@@ -308,7 +283,7 @@ var setExchangeToken = function(server) {
                     return done(null,
                         token.accessToken,
                         token.refreshToken,
-                        { expired_in: token.expiredIn }
+                        { expires_in: token.expiredIn }
                     );
                 }
             });
@@ -317,15 +292,6 @@ var setExchangeToken = function(server) {
 
     // 3. grant_type = client_credentials
     server.exchange(oauth2orize.exchange.clientCredentials(function (client, scope, done) {
-        // check this client is matched to this grant type
-        if (client.grantType[0] !==
-            predefine.oauth2.type.clientCredentials.name) {
-            return done(new oauth2orize.TokenError(
-                    'This client can\'t use client credential grant type',
-                    'unauthorized_client'
-            ));
-        }
-
         Token.findOne({
             'clientId': client.clientId
         }, function (err, token) {
@@ -348,7 +314,7 @@ var setExchangeToken = function(server) {
                         return done(null,
                             newToken.accessToken,
                             newToken.refreshToken,
-                            { expired_in: newToken.expiredIn }
+                            { expires_in: newToken.expiredIn }
                         );
                 });
             } else {
@@ -356,7 +322,7 @@ var setExchangeToken = function(server) {
                 return done(null,
                     token.accessToken,
                     token.refreshToken,
-                    { expired_in: token.expiredIn }
+                    { expires_in: token.expiredIn }
                 );
             }
         });
@@ -364,15 +330,6 @@ var setExchangeToken = function(server) {
 
     // this exchange is for refreshing access token
     server.exchange(oauth2orize.exchange.refreshToken(function (client, refreshToken, scope, done) {
-        // 'implicit grant' type is not permitted by OAuth2 spec  
-        if (client.grantType[0] ==
-            predefine.oauth2.type.implicit.name) {
-            return done(new oauth2orize.TokenError(
-                    'This client can\'t use client refresh token grant type',
-                    'unauthorized_client'
-            ));
-        }
-
         Token.findOne({
             clientId: client.clientId,
             refreshToken: refreshToken
@@ -400,7 +357,7 @@ var setExchangeToken = function(server) {
                 return done(null,
                     updatedToken.accessToken,
                     updatedToken.refreshToken,
-                    { expired_in: updatedToken.expiredIn }
+                    { expires_in: updatedToken.expiredIn }
                 );
             });
         });
@@ -416,6 +373,8 @@ var authorize = function () {
                'clientId': clientId,
                'redirectURI': redirectURI
            }, function (err, oauthClient) {
+               console.log('clientId: ' + clientId);
+               console.log('redirectURI: ' + redirectURI);
                if (err) {
                     return done(new oauth2orize.AuthorizationError(
                             'Error occurs during finding OAuth client',
