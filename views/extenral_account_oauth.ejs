@@ -8,11 +8,12 @@
     if (window.opener) {
         window.opener.focus();
 
+        var type = '<%= type %>';
         var state = '<%= state %>';
-        var data = '<%= data %>';
+        var data = JSON.parse('<%-JSON.stringify(data)%>');
         console.log(data);
         if (window.opener.authState) {
-            window.opener.authState(state, data); 
+            window.opener.authState(type, state, data); 
         }
     }
     window.close();

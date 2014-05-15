@@ -44,7 +44,7 @@ var refreshToken = function (token, cb) {
     });
 };
 
-var validateToken = function (accessToken, userId, cb) {
+var validateToken = function (accessToken, cb) {
     if (!accessToken) {
         return cb(new oauth2orize.TokenError(
                 'access token is not given',
@@ -52,8 +52,7 @@ var validateToken = function (accessToken, userId, cb) {
     }
 
     Token.findOne({
-        accessToken: accessToken,
-        userId: userId
+        accessToken: accessToken
     }, function (err, token) {
         if (err) {
             return cb(err);
@@ -71,7 +70,7 @@ var validateToken = function (accessToken, userId, cb) {
                     'given access token was expired',
                     'invalid_grant'));
         }
-        return cb();
+        return cb(null, token);
     });
 };
 

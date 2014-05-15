@@ -8,36 +8,25 @@ var initialize = function (router) {
 };
 
 var setRouter = function (router) {
-    router.get('/auth', function (req, res) {
-        res.send(404);
-    });
-
     // set route for login and its passport
-    router.get('/auth/login', function (req, res) {
-        // TODO replace session way to token way
-        if (req.user) {
-            res.json({ token: req.user.access_token });
-        } else {
-            res.json(401, { reason: 'not-authenticated' });
-        }
-    });
-
-    router.post('/auth/login', function (req, res, next) {
-        passport.authenticate('local-login', function (err, user, info) {
-            if (err) {
-                return next(err);
-            }
-            if (!user) {
-                console.log(info);
-                return res.json(401, info);
-            }
-
-            req.login(user, function (err) {
+    // login/out is only used for 3rd app to get grant of OAuth2 authorization
+    router.post('/auth/login',  function (req, res, next) {
+        passport.authenticate('local-login', { session: true},
+            function (err, user, info) {
                 if (err) {
                     return next(err);
                 }
-                return res.json(200, { id: user.id });
-            });
+                if (!user) {
+                    console.log(info);
+                    return res.json(401, info);
+                }
+
+                req.login(user, function (err) {
+                    if (err) {
+                        return next(err);
+                    }
+                    return res.json(200);
+                });
         })(req, res, next);
     });
 
@@ -53,57 +42,22 @@ var setRouter = function (router) {
         res.send(200);
     });
 
-    router.post('/auth/connect/local', function (req, res, next) {
-        passport.authenticate('local-signup', function (err, user, info) {
-            if (err) {
-                return next(err);
-            }
-            if (!user) {
-                return res.json(401, info);
-            }
-
-            req.login(user, function (err) {
-                if (err) {
-                    return next(err);
-                }
-                return res.send(200);
-            });
-        })(req, res, next);
-    });
-
-    router.get('/auth/disconnect/local', function (req, res) {
-        var user = req.user;
-        if (!user) {
-            res.json(401, { reason: 'not-authenticated' });
-        }
-        user.local = undefined;
-        user.save(function (err) {
-            if (err) {
-                console.error(err);
-            }
-            res.send(200);
-        });
-    });
-
     // set route for signup and its passport
     router.post('/auth/signup', function (req, res, next) {
-        passport.authenticate('local-signup', function (err, user, info) {
-            console.log('success to local-signup passport');
-            if (err) {
-                return next(err);
-            }
-            if (!user) {
-                console.log(info);
-                return res.json(401, info);
-            }
-
-            req.login(user, function (err) {
+        passport.authenticate('local-signup', { session: false },
+            function (err, user, info) {
+                console.log('success to local-signup passport');
                 if (err) {
                     return next(err);
                 }
-                return res.send(200, { id: user.id });
-            });
-        })(req, res, next);
+                if (!user) {
+                    console.log(info);
+                    return res.json(401, info);
+                }
+
+                return res.send(200);
+            }
+        )(req, res, next);
     });
 };
 
@@ -141,7 +95,7 @@ var setPassportStrategy = function () {
         passwordField: 'password',
         passReqToCallback: true
     }, function (req, email, password, done) {
-        console.log('signup verify callback');
+        console.log('local-signup strategy');
         if (email) {
             email = email.toLowerCase();
         }
@@ -162,6 +116,7 @@ var setPassportStrategy = function () {
                 }
 
                 if (user) {
+                    console.log('an user with email exists!'); 
                     return done(null, false, {
                         reason: 'registered-email'
                     }); 

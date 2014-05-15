@@ -22,13 +22,13 @@ var setAuthRoutes = function (router) {
 
     // initialize passport 
     passport.serializeUser(function (user, done) {
-        console.log('Serialization: ' + user);
+        //console.log('Serialization: ' + user);
         done(null, user.id);
     });
     passport.deserializeUser(function (id, done) {
-        console.log('Deserialization: ' + id);
+        //console.log('Deserialization: ' + id);
         User.findById(id, function (err, user) {
-            console.log(user);
+            //console.log(user);
             done(err, user);
         });
     });
@@ -45,6 +45,7 @@ var setAuthRoutes = function (router) {
 
 var setApiRoutes = function (router) {
     require('./api/profile')(router);
+    require('./api/connect')(router);
 };
 
 var redirectHttps = function (req, res, next) {

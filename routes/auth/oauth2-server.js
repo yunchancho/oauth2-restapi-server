@@ -275,7 +275,10 @@ var setExchangeToken = function(server) {
                             return done(null,
                                 newToken.accessToken,
                                 newToken.refreshToken,
-                                { expires_in: newToken.expiredIn }
+                                {
+                                    expires_in: newToken.expiredIn,
+                                    user_id: user.id 
+                                }
                             );
                     });
                 } else {
@@ -283,7 +286,10 @@ var setExchangeToken = function(server) {
                     return done(null,
                         token.accessToken,
                         token.refreshToken,
-                        { expires_in: token.expiredIn }
+                        {
+                            expires_in: token.expiredIn,
+                            user_id: user.id 
+                        }
                     );
                 }
             });

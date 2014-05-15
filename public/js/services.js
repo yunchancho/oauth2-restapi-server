@@ -12,6 +12,7 @@ module.factory('authFactory', function ($resource) {
 });
 
 module.factory('profileFactory', function ($resource, $q, tokenFactory) {
+    var url = '/api/profile';
     var functions = {
         getProfileResolver: function () {
               // check if token exists, or not.
@@ -19,7 +20,7 @@ module.factory('profileFactory', function ($resource, $q, tokenFactory) {
               if (!tokenFactory.isAuthenticated()) {
                   return tokenFactory.stopRouting();
               }
-              var promise = $resource('/api/profile').get().$promise;
+              var promise = $resource(url).get().$promise;
               promise.then(
                   function(profile) {
                     console.log('resolver success');
@@ -34,7 +35,7 @@ module.factory('profileFactory', function ($resource, $q, tokenFactory) {
         getProfile: function (callback) {
               // check if token exists, or not.
               // if not, current route is stopped!
-              $resource('/api/profile').get(function (response) {
+              $resource(url).get(function (response) {
                   callback(response);
               });
         }
@@ -50,9 +51,12 @@ module.factory('httpRequestInterceptor', function($q, $location, tokenFactory) {
             // add the token to 'Authentication' of http header 
             console.log(config);
 
+            // TODO we need to check if access_token is expired, or not.
+            // if so, we should request refreshing access_token to server
+
             // add token to http header for authorization in server side
             config.headers.Authorization = 
-                'Bearer ' + tokenFactory.getToken();
+                'Bearer ' + tokenFactory.getToken().access_token;
             return config || $q.when(config);
         },
         'requestError': function (rejection) {
@@ -95,7 +99,7 @@ module.factory('httpResponseInterceptor', function($q, $injector, $location, tok
 });
 
 module.factory('tokenFactory', function ($rootScope, $q, $location, $timeout, redirectFactory) {
-    var authToken;
+    var authToken = {};
     // watch authToken value
     // if it is changed to other value, set it to local storage
     // 
@@ -108,7 +112,7 @@ module.factory('tokenFactory', function ($rootScope, $q, $location, $timeout, re
             return authToken;
         },
         isAuthenticated: function () {
-            if (!authToken) {
+            if (!authToken.access_token) {
                 return false;
             }
             return true;

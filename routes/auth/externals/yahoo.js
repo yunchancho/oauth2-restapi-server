@@ -1,6 +1,5 @@
 var passport = require('passport');
 var Strategy = require('passport-yahoo-oauth').Strategy;
-var tokenizer = require('../utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
 var yahooInfo = require('../utils/oauth-info').yahoo;
 
@@ -25,45 +24,30 @@ var setRouter = function (router) {
     );
 
     router.get('/auth/login/yahoo/callback/:state', function (req, res) {
+        var calltype = 'login';
+        if (req.session.passport.connect) {
+            console.log('this oauth is for connect, not login');
+            calltype = 'connect';
+        }
+
         if (req.params.state == 'success') {
             res.render('extenral_account_oauth', {
+                type: calltype,
                 state: 'success',
-                data: req.user.access_token
+                data: {
+                    name: 'yahoo',
+                    token: req.user.yahoo.token
+                }
             });
         } else {
             res.render('extenral_account_oauth', { 
+                type: calltype,
                 state: 'failure', 
                 data: {
                     message: "Yahoo authentication failed :("
                 }
             });
         }
-    });
-
-    // connect to current session
-    router.get('/auth/connect/yahoo',
-            passport.authenticate('yahoo', function (req, res) {
-                console.log('yahoo start to connect user');
-            })
-    );
-
-    // disconnect from current session
-    router.get('/auth/disconnect/yahoo',
-            function (req, res) {
-                console.log('disconnect yahoo');
-                if (!req.user) {
-                    res.send(401, { reason: 'not-authenticated' });
-                } else {
-                    var user = req.user;
-                    user.yahoo = undefined;
-                    console.log('yahoo info: ' + req.user.yahoo);
-                    user.save(function (err) {
-                        if (err) {
-                            console.error(err);
-                        }
-                        res.json({ token: user.access_token });
-                    });
-                }
     });
 };
 
@@ -94,13 +78,6 @@ var setPassportStrategy = function () {
                 } else {
                     console.log('not yet logined user!');
                     changedUser = new User();
-                    try {
-                        changedUser.access_token =
-                             tokenizer.create(changedUser._id);
-                    } catch(err) {
-                        // TODO need to handle error properly
-                        console.log(err);
-                    }
                 }
 
                 // append yahoo profile
@@ -109,7 +86,6 @@ var setPassportStrategy = function () {
                 changedUser.yahoo.refreshToken = refreshToken;
                 changedUser.yahoo.displayName = 
                 changedUser.yahoo.email = 
-                console.log(changedUser.yahoo);
                 changedUser.save(function (err) {
                     if (err) {
                         console.error(err);

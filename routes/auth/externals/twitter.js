@@ -1,6 +1,5 @@
 var passport = require('passport');
 var Strategy = require('passport-twitter').Strategy;
-var tokenizer = require('../utils/tokenizer');
 var User = require(__appbase_dirname + '/models/model-user');
 var twitterInfo = require('../utils/oauth-info').twitter;
 
@@ -12,12 +11,20 @@ var initialize = function (router) {
 var setRouter = function (router) {
     // login (authenticate)
     router.get('/auth/login/twitter',
+            function (req, res, next) {
+                console.log('session: ' + JSON.stringify(req.session));
+                next();
+            },
             passport.authenticate('twitter', {
                 scope : 'email'
             })
     );
 
     router.get('/auth/login/twitter/callback',
+            function (req, res, next) {
+                console.log('session: ' + JSON.stringify(req.session));
+                next();
+            },
             passport.authenticate('twitter', {
                 successRedirect: '/auth/login/twitter/callback/success',
                 failureRedirect: '/auth/login/twitter/callback/failure'
@@ -25,14 +32,26 @@ var setRouter = function (router) {
     );
 
     router.get('/auth/login/twitter/callback/:state', function (req, res) {
+        console.log('session: ' + JSON.stringify(req.session));
+        var calltype = 'login';
+        if (req.session.passport.connect) {
+            console.log('this oauth is for connect, not login');
+            calltype = 'connect';
+        }
+
         if (req.params.state == 'success') {
-            console.log('succss: ' + req.user.access_token);
             res.render('extenral_account_oauth', {
+                type: calltype,
                 state: 'success',
-                data: req.user.access_token
+                // this value is used for my frontend to get access token 
+                data: {
+                    name: 'twitter',
+                    token: req.user.twitter.token
+                }
             });
         } else {
             res.render('extenral_account_oauth', { 
+                type: calltype,
                 state: 'failure', 
                 data: {
                     message: "Twitter Authentication failed :("
@@ -41,42 +60,6 @@ var setRouter = function (router) {
         }
     });
 
-    // connect to current session
-    router.get('/auth/connect/twitter',
-            passport.authorize('twitter', {
-                scope : 'email'
-            })
-    );
-
-    // TODO WHY can't define one more as url callback for oauth?
-    /*
-    router.get('/auth/connect/twitter/callback',
-            passport.authorize('twitter', {
-                successRedirect: '/profile',
-                failureRedirect: '/auth/connect/twitter',
-                failureFlash: true
-            })
-    );
-    */
-
-    // disconnect from current session
-    router.get('/auth/disconnect/twitter',
-            function (req, res) {
-                console.log('disconnect twitter');
-                if (!req.user) {
-                    res.send(401, { reason: 'not-authenticated' });
-                } else {
-                    var user = req.user;
-                    user.twitter = undefined;
-                    console.log('twitter info: ' + req.user.twitter);
-                    user.save(function (err) {
-                        if (err) {
-                            console.error(err);
-                        }
-                        res.json({ token: user.access_token });
-                    });
-                }
-    });
 };
 
 var setPassportStrategy = function () {
@@ -86,6 +69,7 @@ var setPassportStrategy = function () {
         callbackURL: twitterInfo.callbackURL,
         passReqToCallback: true
     }, function (req, token, tokenSecret, profile, done) {
+        console.log('twitter stragtegy');
         // TODO How about using process.nextTick() for code below
         User.findOne({ 'twitter.id' : profile.id },
             function (err, user) {
@@ -94,6 +78,7 @@ var setPassportStrategy = function () {
                     return done(err);
                 }
 
+                // TODO in case of connect, how to handle this?
                 if (user) {
                     console.log('twitter user already exists!');
                     return done(null, user);
@@ -101,18 +86,11 @@ var setPassportStrategy = function () {
 
                 var changedUser;
                 if (req.user) {
-                    console.log('already logined user!');
                     changedUser = req.user;
+                    changedUser.tokenInfo = undefined;
                 } else {
                     console.log('not yet logined user!');
                     changedUser = new User();
-                    try {
-                        changedUser.access_token =
-                             tokenizer.create(changedUser._id);
-                    } catch(err) {
-                        // TODO need to handle error properly
-                        console.log(err);
-                    }
                 }
 
                 // append twitter profile

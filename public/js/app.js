@@ -43,10 +43,11 @@ app.config(function($routeProvider) {
 
 app.run(function ($rootScope, $location, $window, tokenFactory, redirectFactory) {
     // check already saved access_token
-    var access_token = window.localStorage.getItem('access_token');
-    if (access_token) {
-        console.log('access token for this app exists');
-        tokenFactory.setToken(access_token);
+    var tokenInfoString = window.localStorage.getItem('tokenInfo');
+    var tokenInfo = JSON.parse(tokenInfoString) || {};
+    if (tokenInfo.access_token) {
+        console.log('token for this app exists');
+        tokenFactory.setToken(tokenInfo);
     }
 
     // watch access_token for accessing resources of this app(node server)
@@ -54,7 +55,8 @@ app.run(function ($rootScope, $location, $window, tokenFactory, redirectFactory)
     $rootScope.$watch(tokenFactory.getToken, function (newVal, oldVal, scope) {
         if (newVal !== oldVal) {
             console.log('reset access_token into localstorage');
-            window.localStorage.setItem('access_token', newVal);
+            newVal.created = Date.now();
+            window.localStorage.setItem('tokenInfo', JSON.stringify(newVal));
         }
     });
 
@@ -93,12 +95,22 @@ app.run(function ($rootScope, $location, $window, tokenFactory, redirectFactory)
     });
 
     // this function should be called from auth popup
-    $window.authState = function (state, data) {
+    $window.authState = function (type, state, data) {
         $rootScope.$apply(function () {
-            if (state == 'success') {
-               $rootScope.$emit('social-login:success', data); 
+            if (type == 'login') {
+                if (state == 'success') {
+                   $rootScope.$emit('social-login:success', data); 
+                } else {
+                   $rootScope.$emit('social-login:failure', data); 
+                }
+            } else if (type == 'connect') {
+                if (state == 'success') {
+                   $rootScope.$emit('social-connect:success', data);
+                } else {
+                   $rootScope.$emit('social-connect:failure', data); 
+                }
             } else {
-               $rootScope.$emit('social-login:failure', data); 
+                console.log('wrong type');
             }
         });
     };

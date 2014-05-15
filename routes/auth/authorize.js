@@ -1,11 +1,15 @@
 var passport = require('passport');
 var BasicStrategy = require('passport-http').BasicStrategy; 
 var PublicClientStrategy = require('passport-oauth2-public-client').Strategy;
+var BearerStrategy = require('passport-http-bearer').Strategy;
 var OauthClient = require(__appbase_dirname + '/models/model-oauthclient');
+var Token = require(__appbase_dirname + '/models/model-token');
+var User = require(__appbase_dirname + '/models/model-user');
 var oauth2orize = require('oauth2orize');
 var oauth2Server = require('./oauth2-server');
 var oauth2TestClients = require('./oauth2-test-clients');
 var predefine = require('./predefine');
+var tokenizer = require('./utils/tokenizer');
 var url = require('url');
 var querystring = require('querystring');
 
@@ -101,19 +105,78 @@ var setPassportStrategy = function () {
         }
     }));
 
+    passport.use(new BearerStrategy({
+        passReqToCallback: true
+    }, function (req, accessToken, done) {
+        console.log('bearer stretegy');
+        tokenizer.validate(accessToken, function (err, token) {
+            if (err) {
+                return done(err);
+            }
+
+            User.findOne({
+                '_id': token.userId
+            }, function (err, user) {
+                if (err) {
+                    return done(err);
+                }
+                if (!user) {
+                    return done(null, false, {
+                        reason: 'invalid-user'
+                    });
+                }
+
+                // token info can be used for handling REST API
+                // so token info is set to result which is returned after authentication 
+                user.tokenInfo = token;
+                return done(null, user);
+            });
+        });
+    }));
 };
 
 var setRouter = function (router) {
     // Just for authorization code, implicit grant type
     router.get('/auth/authorize', isLogined, oauth2Server.authorize());
     router.post('/auth/authorize/decision', isLogined, oauth2Server.decision());
+    // Check if access token is valid
+    router.get('/auth/session',
+            passport.authenticate('bearer', { session: true }),
+            function (req, res) {
+                console.log('token is validated and session is created');
+                res.send(200);
+            });
 
-    // Just for authorization code, Resource owner password, client credential grant type
-    router.post('/auth/token',
+    // Authenticate client and create access token 
+    // 'basic' strategy: 'Authorization Code', 'Client Credential' grant type
+    // 'public-client' strategy: 'Implicit', 'Resource owner password' type
+    router.post('/auth/token', 
+            function (req, res, next) {
+                console.log('session: ' + JSON.stringify(req.session));
+                next();
+            },
             passport.authenticate(
                 ['basic', 'oauth2-public-client'],
                 { session : false }),
             oauth2Server.token());
+
+    // Delete access token for all grant types
+    router.del('/auth/token',
+            passport.authenticate('bearer', { session: false }),
+            function (req, res) {
+                console.log('bearer strategy for token delete');
+                Token.remove({
+                    'accessToken': req.user.tokenInfo.accessToken,
+                    'userId': req.user._id
+                }, function (err) {
+                    if (err) {
+                        // TODO need to set proper error
+                        res.send(400);
+                    } else {
+                        res.send(200);
+                    }
+                });
+            });
 
     // TODO in real practice, this route should be removed!!
     // this is just for test of dummy 3rd party app

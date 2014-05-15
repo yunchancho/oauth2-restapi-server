@@ -7,17 +7,19 @@ module.controller('LoginCtrl', function($scope, $rootScope, $location, $window, 
     $scope.alertMessage = null;
     $scope.loginLocalAccount = function (credentials) {
         authFactory.save({
-            action: 'login',
+            action: 'token',
         }, {
-            email : $scope.credentials.email,
+            grant_type : "password",
+            client_id : "tEYQAFiAAmLrS2Dl",
+            username : $scope.credentials.email,
             password : $scope.credentials.password
         }, function (response) {
             console.log('login success');
             // emit login complete
             $rootScope.$emit('required-login:success');
             // save info with token sent by node server
-            console.log('access_token for node.js server: ' + response.token);
-            tokenFactory.setToken(response.token);
+            console.log('success to get access token');
+            tokenFactory.setToken(response);
             if (redirectFactory.getUrl()) {
                 $location.path(redirectFactory.getUrl());
             } else {
@@ -37,26 +39,45 @@ module.controller('LoginCtrl', function($scope, $rootScope, $location, $window, 
         $window.open(url, 'target=_blank');
     };
 
-    $rootScope.$on('social-login:success', function (event, token) {
-        console.log('Success event Recieved');
-        console.log('access_token for node.js server: ' + token);
-        tokenFactory.setToken(token);
-        console.log('credentials: ' + JSON.stringify($scope.credentials));
-        if (redirectFactory.getUrl()) {
-            $location.path(redirectFactory.getUrl());
-        } else {
-            $location.path('/');
-        }
-        redirectFactory.setUrl(null);
+    $rootScope.$on('social-login:success', function (event, data) {
+        console.log('social login success: ' + data.name);
+        authFactory.save({
+            action: 'token',
+        }, {
+            grant_type : "password",
+            client_id : "tEYQAFiAAmLrS2Dl",
+            username : data.name,
+            password : data.token
+        }, function (response) {
+            console.log('login success');
+            // emit login complete
+            $rootScope.$emit('required-login:success');
+            // save info with token sent by node server
+            console.log('success to get access token');
+            tokenFactory.setToken(response);
+            if (redirectFactory.getUrl()) {
+                $location.path(redirectFactory.getUrl());
+            } else {
+                $location.path('/');
+            }
+            redirectFactory.setUrl(null);
+        }, function (error) {
+            if (redirectFactory.getUrl()) {
+                $location.path(redirectFactory.getUrl());
+            } else {
+                $location.path('/');
+            }
+            redirectFactory.setUrl(null);
+        });
     });
 
     $rootScope.$on('social-login:failure', function (event, error) {
-        console.log('Failure event Recieved');
+        console.log('social login failed');
         $scope.alertMessage = error.message;
     });
 });
 
-module.controller('SignupCtrl', function($scope, $location, authFactory, tokenFactory, redirectFactory) {
+module.controller('SignupCtrl', function($scope, $location, $resource, authFactory, tokenFactory, redirectFactory) {
     $scope.alertMessage = null;
     $scope.signup = function (credentials) {
         authFactory.save({
@@ -65,8 +86,7 @@ module.controller('SignupCtrl', function($scope, $location, authFactory, tokenFa
             email : $scope.credentials.email,
             password : $scope.credentials.password
         }, function (response) {
-            console.log('access_token for node.js server: ' + response.token);
-            tokenFactory.setToken(response.token);
+            console.log('success to sign up local account');
             $location.path('/profile');
         }, function (error) {
             // show error message on current page
@@ -75,7 +95,7 @@ module.controller('SignupCtrl', function($scope, $location, authFactory, tokenFa
     };
 
     $scope.signupForConnect = function (credentials) {
-        authFactory.save({
+        $resource('/api/:action/:social').save({
             action: 'connect',
             social: 'local'
         }, {
@@ -83,8 +103,7 @@ module.controller('SignupCtrl', function($scope, $location, authFactory, tokenFa
             password : $scope.credentials.password
         }, function (response) {
             // save info with token sent by node server
-            console.log('access_token for node.js server : ' + response.token);
-            tokenFactory.setToken(response.token);
+            console.log('success to connect local account');
             $location.path('/profile');
         }, function (error) {
             // show error message on current page
@@ -94,14 +113,14 @@ module.controller('SignupCtrl', function($scope, $location, authFactory, tokenFa
     };
 });
 
-module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $location, authFactory, tokenFactory, profileFactory, profileRouteResolver) {
+module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $location, $resource, authFactory, tokenFactory, profileFactory, profileRouteResolver) {
     $scope.alertMessage = null;
     $scope.profile = profileRouteResolver;
     $scope.logout = function () {
-        authFactory.get({
-            action: 'logout'
+        authFactory.delete({
+            action: 'token'
         }, function () {
-            tokenFactory.setToken('');
+            tokenFactory.setToken({});
             $location.path('/');
         });
     };
@@ -111,17 +130,16 @@ module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $
     };
 
     $scope.connectSocialAccount = function (socialName) {
-        var url = '/auth/connect/' + socialName;
-        $window.open(url, 'target=_blank');
+        $resource('/auth/session').get(function (data) {
+            $window.open('/api/connect/' + socialName, 'target=_blank');
+        });
     };
 
     $scope.disconnectAccount = function (socialName) {
-        authFactory.get({
-            action: 'disconnect',
+        $resource('/api/disconnect/:social').get({
             social: socialName
         }, function (data) {
-            console.log('disconnect callback: ' + data.token);
-            tokenFactory.setToken(data.token);
+            console.log('success to disconnect to ' + socialName);
             // fetch profile again from node server
             profileFactory.getProfile(function(response) {
                 $scope.profile = response;
@@ -129,18 +147,17 @@ module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $
         });
     };
 
-    $rootScope.$on('social-login:success', function (event, token) {
-        console.log('Success event Recieved');
-        tokenFactory.setToken(token);
+    $rootScope.$on('social-connect:success', function (event, data) {
+        console.log('social connect success: ' + data.name);
         // reload current route for fetching updated profile
-            // fetch profile again from node server
-            profileFactory.getProfile(function(response) {
-                $scope.profile = response;
-            });
+        // fetch profile again from node server
+        profileFactory.getProfile(function(response) {
+            $scope.profile = response;
+        });
     });
 
-    $rootScope.$on('social-login:failure', function (event, error) {
-        console.log('Failure event Recieved');
+    $rootScope.$on('social-connect:failure', function (event, error) {
+        console.log('social connect failed');
         $scope.alertMessage = error.message;
     });
 });
