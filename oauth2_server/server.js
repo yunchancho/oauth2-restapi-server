@@ -1,6 +1,6 @@
 var oauth2orize = require('oauth2orize');
-var utils = require('./utils/utils');
-var tokenizer = require('./utils/tokenizer');
+var utils = require(__appbase_dirname + '/utils/utils');
+var tokenizer = require(__appbase_dirname + '/utils/tokenizer');
 var predefine = require('./predefine');
 
 // requires databases

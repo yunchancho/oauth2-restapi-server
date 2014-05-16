@@ -1,8 +1,20 @@
 var passport = require('passport');
-var oauth2Server = require('../auth/oauth2-server');
+var oauth2Server = require(__appbase_dirname + '/oauth2_server/server');
 var User = require(__appbase_dirname + '/models/model-user');
 
 module.exports = function(router) {
+
+// TODO these apis should not be accessible by 3rd party app
+// So we need to use 'scope' of OAuth2 spec 
+
+// api for activating session 
+// this would be useful to save its data into specific user with a token after connecting other social apps
+router.get('/api/session',
+        passport.authenticate('bearer', { session: true }),
+        function (req, res) {
+            console.log('token is validated and session is created');
+            res.send(200);
+        });
 
 router.post('/api/connect/local',
         passport.authenticate('bearer', { session: false }),
@@ -45,7 +57,6 @@ router.get('/api/disconnect/local',
                     }
 
                     user.local = undefined;
-                    user.tokenInfo = undefined;
                     user.save(function (err) {
                         if (err) {
                             throw err;
@@ -101,28 +112,7 @@ router.get('/api/disconnect/:socialapp',
         oauth2Server.error(),
         function (req, res) {
             var user = req.user;
-            switch(req.params.socialapp) {
-                case 'twitter':
-                    user.twitter = undefined;
-                    break;
-                case 'facebook':
-                    user.facebook = undefined;
-                    break;
-                case 'google':
-                    user.google = undefined;
-                    break;
-                case 'yahoo':
-                    user.yahoo = undefined;
-                    break;
-                case 'linkedin':
-                    user.linkedin = undefined;
-                    break;
-                case 'github':
-                    user.github = undefined;
-                    break;
-                default:
-                    return res.send(401, { reason: 'unknown-socialapp' });
-            }
+            eval('user.' + req.params.socialapp + ' = undefined;');
             user.save(function (err) {
                 if (err) {
                     console.error(err);

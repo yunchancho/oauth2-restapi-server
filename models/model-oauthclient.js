@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt-nodejs');
-var utils = require(__appbase_dirname + '/routes/auth/utils/utils');
+var utils = require(__appbase_dirname + '/utils/utils');
 
 var schema = mongoose.Schema({
     name: String,
@@ -18,8 +18,12 @@ schema.pre('save', function (next) {
     if (!this.isNew) {
         return next();
     }
-    this.clientId = utils.uid(16);
-    this.clientSecret = utils.uid(32);
+    if (!this.clientId) {
+        this.clientId = utils.uid(16);
+    }
+    if (!this.clientSecret) {
+        this.clientSecret = utils.uid(32);
+    }
     next();
 });
 

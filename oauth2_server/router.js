@@ -6,16 +6,19 @@ var OauthClient = require(__appbase_dirname + '/models/model-oauthclient');
 var Token = require(__appbase_dirname + '/models/model-token');
 var User = require(__appbase_dirname + '/models/model-user');
 var oauth2orize = require('oauth2orize');
-var oauth2Server = require('./oauth2-server');
-var oauth2TestClients = require('./oauth2-test-clients');
+var oauth2Server = require('./server');
+var oauth2TestClients = require('./test-clients');
 var predefine = require('./predefine');
-var tokenizer = require('./utils/tokenizer');
+var tokenizer = require(__appbase_dirname + '/utils/tokenizer');
 var url = require('url');
 var querystring = require('querystring');
 
 var initialize = function (router) {
+    // oauth2 server start to run
     oauth2Server.initialize();
     oauth2TestClients();
+
+    // set routes for oauth2
     setPassportStrategy();
     setRouter(router);
 };
@@ -137,20 +140,13 @@ var setPassportStrategy = function () {
 
 var setRouter = function (router) {
     // Just for authorization code, implicit grant type
-    router.get('/auth/authorize', isLogined, oauth2Server.authorize());
-    router.post('/auth/authorize/decision', isLogined, oauth2Server.decision());
-    // Check if access token is valid
-    router.get('/auth/session',
-            passport.authenticate('bearer', { session: true }),
-            function (req, res) {
-                console.log('token is validated and session is created');
-                res.send(200);
-            });
+    router.get('/oauth2/authorize', isLogined, oauth2Server.authorize());
+    router.post('/oauth2/authorize/decision', isLogined, oauth2Server.decision());
 
     // Authenticate client and create access token 
     // 'basic' strategy: 'Authorization Code', 'Client Credential' grant type
     // 'public-client' strategy: 'Implicit', 'Resource owner password' type
-    router.post('/auth/token', 
+    router.post('/oauth2/token', 
             function (req, res, next) {
                 console.log('session: ' + JSON.stringify(req.session));
                 next();
@@ -161,7 +157,7 @@ var setRouter = function (router) {
             oauth2Server.token());
 
     // Delete access token for all grant types
-    router.del('/auth/token',
+    router.del('/oauth2/token',
             passport.authenticate('bearer', { session: false }),
             function (req, res) {
                 console.log('bearer strategy for token delete');
@@ -183,7 +179,7 @@ var setRouter = function (router) {
     // if there is no error, this 3rd party app server should exchange token using received code
     // otherwise, 3rd party app server should handle error along to error type
     // (we just print received code here)
-    router.get('/auth/authorize/callback', function (req, res) {
+    router.get('/oauth2/authorize/callback', function (req, res) {
         console.log('Redirected by authorization server');
         var ret = {};
         if (req.query.code) {
@@ -221,4 +217,4 @@ var isLogined = function (req, res, next) {
     return next(error);
 };
 
-module.exports = initialize;
+module.exports.initialize = initialize;

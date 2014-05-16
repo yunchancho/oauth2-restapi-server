@@ -34,7 +34,8 @@ var setRouter = function (router) {
     router.get('/auth/logout', function (req, res) {
         // TODO replace this to token way
         if (req.user) {
-            req.logout();
+            // TODO why not clear session using req.logout()?
+            req.session.destroy();
         } else {
             console.log('this user is not authenticated');
         }

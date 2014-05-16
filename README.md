@@ -1,46 +1,41 @@
-social-oauth2-provider
+oauth2-restapi-server
 =============
 
-`social-oauth2-provider` is a prototype for logined social accounts to be authorized via OAuth2 by our backend server, so that they can access resources of our backendwith access token. Additionally `social-oauth2-provider` provides signup and login feature for local account which also is authorized via OAuth2 for accessing resources of backend server. This prototype works on [node.js](http://nodejs.org) with [passport](http://github.com/jaredhanson/passport) and [oauth2orize](http://github.com/jaredhanson/oauth2orize) as backend server and [angular.js](http://angularjs.org) frontend. `social-oauth2-provider` supports the following social accounts as default. Once frontend is logined using social accounts or local account, frontend recieves access token issued by node.js backend server of `social-oauth2-provider` so that it request some resources like user profile to backend server, passing the access token  
+`oauth2-restapi-server` consists of oauth2 provider and api provider. As oauth2 provider, it provides issuing, validating and destroying oauth2 based token. As api provider, it provides responding to RESTful API requests from its clients. Every RESTful APIs are requested with access token issued by this oauth2 provider. `oauth2-restapi-server` provides its client as 1st party app with signup and login features using social accounts, so that the client can access resources of this api provider with an access token issued by this oauth2 provider. Additionally `oauth2-restapi-server` provides also signup and login features for local account. So 1st party app can access some resources using access token like case of social accounts. `oauth2-restapi-server` works on [node.js](http://nodejs.org) with [passport](http://github.com/jaredhanson/passport) and [oauth2orize](http://github.com/jaredhanson/oauth2orize). This repository also provides 1st party app(frontend) based on [angular.js](http://angularjs.org). You would understand `oauth2-restapi-server` using this 1st party app. `oauth2-restapi-server` supports for an user to signup using the following social accounts. Once a client gets an access token using social accounts or local account, so that it can call REST apis with the access token to access some resources like user profile.
 
- - Twitter (OAuth1.0A)
- - Facebook (OAuth2)
- - Google+ (OAuth2)
- - Yahoo! (OAuth2)
- - LinkedIn (OAuth2)
- - GitHub (OAuth2)
+ - Twitter (OAuth1.0A), Facebook (OAuth2), Google+ (OAuth2), Yahoo! (OAuth2), LinkedIn (OAuth2), GitHub (OAuth2)
 
-`social-oauth2-provider` provides the followings
- - **node.js backend** (server) for oauth2 based authentication and authorization and REST API
+`oauth2-restapi-server` provides the followings
   - Access token for 1st party app and 3rd party apps  
-    1st party app (default frontend of `social-oauth2-provider`) doesn't need to exchange specific code with its backend server to get access token,
+    1st party app (default frontend of `oauth2-restapi-server`) doesn't need to exchange specific code with its backend server to get access token,
     because it can recieve user credentials from its users. So access token for 1st party app is issued using Resource Owner Password Credentials Grant 
-    And to let 3rd party apps use some REST API of our `social-oauth2-provider`, you should provide specific way to 3rd party developers to register their apps for that.
+    And to let 3rd party apps use some REST API of our `oauth2-restapi-server`, you should provide specific way to 3rd party developers to register their apps for that.
     Generally, API providers use their website for registeration of 3rd party app.
-    Backend server of `social-oauth2-provider` simply registers one default app per each grant type, as well as 'resource owner password' for 1st party app.
+    Backend server of `oauth2-restapi-server` simply registers one default app per each grant type, as well as 'resource owner password' for 1st party app.
     You can test some flow of oauth2 specification using that apps
-    - '[Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#page-37)' for 1st party app (`social-oauth2-provider` frontend)
+    - '[Resource Owner Password Credentials Grant](http://tools.ietf.org/html/rfc6749#page-37)' for 1st party app (`oauth2-restapi-server` frontend)
     - '[Authorization Code Grant](http://tools.ietf.org/html/rfc6749#page-24)' for 3rd party app
     - '[Implicit Grant](http://tools.ietf.org/html/rfc6749#page-31)' for 3rd party app
     - '[Client Credentials Grant](http://tools.ietf.org/html/rfc6749#page-40)' for 3rd party app
   - REST API to get access token from backend server 
-    - /auth/authorize
-    - /auth/authorize/decision
-    - /auth/authorize/callback (Just for test of authorization code grant and implicit grant)
-    - /auth/token
+    - /oauth2/authorize
+    - /oauth2/authorize/decision
+    - /oauth2/authorize/callback (Just for test of authorization code grant and implicit grant)
+    - /oauth2/token
   - REST API to get resource. frontends surely should pass access token in request header(`Authorization: Bearer <access_token>`). 
-    - /api/profile/:id (`:id` means identifier of registered user of `social-oauth2-provider`, not user's email)
+    - /api/profile/:id (`:id` means identifier of registered user of `oauth2-restapi-server`, not user's email)
   - TLS(HTTPS) based communication 
     - every data from frontends are passed securly using https protocol.
     - even if http url is requested to backend server, the request is redirected as https url.
       http://<server_domain>/auth/login --> https://<server_domain>/auth/login
-    - `social-oauth2-provider` uses self signed certificates for TLS. But you can replace them to ones isseud by public CA.
+    - `oauth2-restapi-server` uses self signed certificates for TLS. But you can replace them to ones isseud by public CA.
   - (TODO) Access Control based on `scope` of OAuth2
     - if node.js backend uses `scope` on validation of requests with access token by frontends, 
       it can provide access control mechanism for protecting its resource from improper request.
-      Currently, backend server of `social-oauth2-provider` permits all resources if the request includes valid access token.
+      Currently, backend server of `oauth2-restapi-server` permits all resources if the request includes valid access token.
 
- - **angular.js frontend** (1st party app) for rendering views dynamically and interacting with users
+1st party app as frontend provides the followings
+  - views rendering dynamically and interacting with users
   - Single page web app. That is, all pages are aren't refreshed because angluar.js get them using ajax
   - Interaction with users using login/signup/profile views for social accounts and local account
   - Page routing using `$route` angular.js service
@@ -48,89 +43,66 @@ social-oauth2-provider
   - Error Handling `401`(http authentication status) and recovering it
   - Oauth based authentications of social accounts using new window to avoid CORS problem due to ajax
   - Bower script to maintian js libraries like angluar.js, bootstrap, fontawesome
-  - (TODO) refactoring frontend along to OAuth2 flow
+  - Request REST API to node server with access token given by OAuth2 authorization
   - (TODO) applyig twitter's bootstrap fully to views
-
-You can add login for other social networks simply if you conform to structure of this prototype.
 
 ## Install
 prerequisites are the followings :
 
- - clone `social-oauth2-provider` repo into your local machine
+ - clone `oauth2-restapi-server` repo into your local machine
 
-    $ git clone git@github.com:vinebrancho/social-oauth2-provider.git
+    $ git clone git@github.com:vinebrancho/oauth2-restapi-server.git
 
  - install mongodb into your local machine
 
-And then, You can install `social-oauth2-provider` using the following.
+And then, You can install `oauth2-restapi-server` using the following.
 
     $ npm install
   
 ## Usage
-You can run node server with `social-oauth2-provider` just using the following.
+You can run node server with `oauth2-restapi-server` just using the following.
 
     $ npm start
 
-And the, you can see Login UI of `social-oauth2-provider` on your web browser by connecting to your node server url
+And the, you can see Login UI of `oauth2-restapi-server` on your web browser by connecting to your node server url
 
-    http://<your_node_server.com>/
+    http://<your_server_url>/
     
-In order to login or connect with accouts of social networks, you **must** change the `routes/oauth-info.js`. The file includes application id, secret and redirect url registered on social network provider for oauth authentication. To get application id (or key), register your application on each social networks. After that, you can replace id, secret and redirect url of the file to your own ones. The following is example for twitter oauth setting
+In order to login or connect with accouts of social networks, you **must** change the `api_server/oauth-info.js`. The file includes application id, secret and redirect url registered on social network provider for oauth authentication. To get application id (or key), register your application on each social networks. After that, you can replace id, secret and redirect url of the file to your own ones. The following is example for twitter oauth setting
     
 ``` javascript
     ...
     'twitter' : {
         'consumerKey' : 'WEV2Mz2xQPSfDsAYkHbgiVrrE',
         'consumerSecret' : 'ok17qE4dzwzygUOQRzLDlODo63UVDGHigqszTmpjr5LEF0UC1p',
-        'callbackURL' : 'http://www.your_node_server.com/auth/login/twitter/callback'
+        'callbackURL' : 'https://<your_server_url>/auth/login/twitter/callback'
     },
     ...
 ```
 
 By this way, after replacing all default social networks to your own ones, your application can login or connect with all social networks. 
 
-## Add other social networks to social-oauth2-provider
-You can add a social network into `social-oauth2-provider` simply if you do the followings step by step.
-
-1. Get application id(or key), secret from the social network provider
-2. Add them into `routes/oauth-info.js`
-3. Add fields for saving data from oauth into `models/model-user.js`
-4. Create node module for routes and oauth handling of new social network into `routes/auth/<new_social_network_name>.js`
-  - copy existing node module like twitter.js or facebook.js to the name above
-  - you need to change the followings without changing basic structure of the node module
-    - change request urls like `/auth/login/twitter` to `/auth/login/<new_social_network_name>`
-    - change passport module like `require(passport-twitter)` to `require(passport-<new_social_network_name>)`
-    - change params of passport.authenticate() according to interface of `passport-<new_social_network_name>` module
-    - change params of passport.use() according to interface of `passport-<new_social_network_name>` module
-    - change code inserting data into database in passort verify-callback, according to fields added in 3 step
-5. Enable node module created above by adding `require(<new module>)(router)` into `setAuthRoutes` function of `routes/router.js` 
-6. Modify existing views of angular.js frontend 
-    - add new button for the social networks into `/public/partials/login.html`
-    - add angular models on `/public/partials/profile.html` to show information of new social network account
-
-* You may find passport strategy module of other social networks in the [passport wiki](https://github.com/jaredhanson/passport/wiki/Strategies). If there isn't the passport strategy module that you want, you need to create new passport starategy module for use.
-
-## API Usage for authentication and authorization 
-Currently `social-oauth2-provider` doesn't use `scope` and `state` fields of OAuth2 spec (even if they are useful)
+## API Usage for authentication and authorization regarding OAuth2
+Currently `oauth2-restapi-server` doesn't use `scope` and `state` fields of OAuth2 spec (even if they are useful)
 every fields speicified as `REQUIRED` are requested or response in http header or body.
 Please refer OAuth2 specification about that.
 
-### /auth/authorize
+### /oauth2/authorize
 - description: request authorization of 3rd party app
 - prerequisites: frontend MUST be logined using user's credetial
 - required field in http request: 
   - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.1 
   - Implicit Grant: http://tools.ietf.org/html/rfc6749#section-4.2.1
-- response: html page for user to grant `social-oauth2-provider` app
+- response: html page for user to grant `oauth2-restapi-server` app
 
-### /auth/authorize/decision
+### /oauth2/authorize/decision
 - description: pass user's grant (allow or deny). This API is called from html page recieved due to /auth/authorize
 - required field in http request: transaction_id, allow (or deny) field
 - response: 
   - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.2 
   - Implicit Grant: http://tools.ietf.org/html/rfc6749#section-4.2.2
 
-### /auth/token
+### /oauth2/token
 - description: request issuing access token.  
 - required field in http request: 
   - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.3
@@ -140,14 +112,14 @@ Please refer OAuth2 specification about that.
      `password`: *user_password* (registered by signup)
     * in case of login using social accounts, `usename` and `password` field should be like the following.
      `username`: 'twitter', 'facebook', 'google', 'yahoo', 'linkedin', 'github' (social account provider's name) 
-     `password`: *access_token* (issued by backend server `social-oauth2-provider`)
+     `password`: *access_token* (issued by backend server `oauth2-restapi-server`)
   - Client Credentials Grant: http://tools.ietf.org/html/rfc6749#section-4.4.2 
 - response
   - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.4
   - Resource Owner Password Credentials Grant: http://tools.ietf.org/html/rfc6749#section-4.3.3
   - Client Credentials Grant: http://tools.ietf.org/html/rfc6749#section-4.4.3 
 
-Rresponse body is like the follwoing.
+    Rresponse body is like the follwoing.
 ``` javascript
     {
         "access_token": "91aQZKpvcWcc3i18YBw69Kh8hVkMTztjJJccZQfQksOXgDzU1QShXjccYjPQLDGM9kbXmqYMFxqNJErm9iBGfWlzbdFgvkJwCtGdPiK4RDpU0t0VNNbJ9YtdiWKPAgH4PPx4dAKsJ6mWoNbLjOdP6W0gUif9hSH4W2X5eRz8DXmAGGi4exwt8Zs6khMZ6DDGRcX0qULyg4vc2OaqLMHgNtC1DNzxCHSvyr66Vd3Wb9oYk6CeFjPDlxsGfJI7usmI",
@@ -156,27 +128,34 @@ Rresponse body is like the follwoing.
         "token_type": "Bearer"
     }
 ```
-## REST API Usage for access of resources
-### /api/profile/:id
+
+## API Usage for login signup regarding local account 
+These would be only used by 1st party app or authorization page
+### /auth/login
+This would be only used by authorization page for oauth2 
+### /auth/logout
+This would be only used by authorization page for oauth2 
+### /auth/login/:socialapp
+This would be used by 1st party app
+### /auth/signup
+This would be used by 1st party app
+
+## REST API Usage for 1st party app with access token
+These would be only used by 1st party app authorized with 'Resource Owner Password' grant type
+Later, use of REST API will be limited by 'scope' of issued access token.
+### /api/profile
 - description: request profile data of user 
-  `:id` means identifier of registered user of `social-oauth2-provider`, not user's email.
-  fronend can recieve `:id` as response's body like the following.
-``` javascript
-    {
-        id: 536c370794b87a15049813e9 
-    }
-```
 - prerequisites: frontend MUST have access token issued by backend server
 - required field in http request:
    `Authorization` header field filled with `Bearer <access_token>` 
 ``` javascript
-    GET /api/profile/536c370794b87a15049813e9 HTTP/1.1
+    GET /api/profile HTTP/1.1
     Host: ec2-54-199-141-31.ap-northeast-1.compute.amazonaws.com:3443
-    Authorization: Bearer w9QWRQZIW8RiRtGEuYBC3J6RfbGv3Mg54Vi9vSUmL6LVMSitgBarGy9dQjG3HrsQ3KD1HwFkHcRRj4xE0QTDcsA3fhWAk8q00E4yzzoQnB9fkQ73PU7tn3FmMcKyvvu43K245SRfdIEckXIeEDvqMdO7V9VF3ScMMOA24HyrYr3UxtkWiVoGCtb7aOEHRT0hUmBKBYbxWNLpEWKoHjPEPXaOBs7204ItaMZAFXEO8JosM4hNu51CdPpmOaN5CzVL
+    Authorization: Bearer 91aQZKpvcWcc3i18YBw69Kh8hVkMTztjJJccZQfQksOXgDzU1QShXjccYjPQLDGM9kbXmqYMFxqNJErm9iBGfWlzbdFgvkJwCtGdPiK4RDpU0t0VNNbJ9YtdiWKPAgH4PPx4dAKsJ6mWoNbLjOdP6W0gUif9hSH4W2X5eRz8DXmAGGi4exwt8Zs6khMZ6DDGRcX0qULyg4vc2OaqLMHgNtC1DNzxCHSvyr66Vd3Wb9oYk6CeFjPDlxsGfJI7usmI
     Cache-Control: no-cache
     Content-Type: application/x-www-form-urlencoded
 ```
-- response body includes profile of requested user id
+- response body includes profile of requested user
 ``` javascript
     {
         "_id": "536c370794b87a15049813e9",
@@ -187,6 +166,15 @@ Rresponse body is like the follwoing.
         }
     }
 ```
+### /api/session
+### /api/connect/local
+### /api/disconnect/local
+### /api/connect/:socialapp
+### /api/disconnect/:socialapp
+
+## REST API Usage for 3rd party app with access token
+not yet :)
+
 
 ## Credits
 

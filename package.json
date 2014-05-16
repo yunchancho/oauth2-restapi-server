@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "postinstall": "bower install",
-    "start": "node ./bin/www"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "~4.0.0",

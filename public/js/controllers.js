@@ -2,13 +2,11 @@
 
 var module = angular.module('myApp.controllers', []);
 
-module.controller('LoginCtrl', function($scope, $rootScope, $location, $window, authFactory, tokenFactory, redirectFactory) {
+module.controller('LoginCtrl', function($scope, $rootScope, $location, $window,$resource, authFactory, tokenFactory, redirectFactory) {
     $scope.loadingView = true;
     $scope.alertMessage = null;
     $scope.loginLocalAccount = function (credentials) {
-        authFactory.save({
-            action: 'token',
-        }, {
+        $resource('/oauth2/token').save({}, {
             grant_type : "password",
             client_id : "tEYQAFiAAmLrS2Dl",
             username : $scope.credentials.email,
@@ -41,9 +39,7 @@ module.controller('LoginCtrl', function($scope, $rootScope, $location, $window, 
 
     $rootScope.$on('social-login:success', function (event, data) {
         console.log('social login success: ' + data.name);
-        authFactory.save({
-            action: 'token',
-        }, {
+        $resource('/oauth2/token').save({}, {
             grant_type : "password",
             client_id : "tEYQAFiAAmLrS2Dl",
             username : data.name,
@@ -117,9 +113,7 @@ module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $
     $scope.alertMessage = null;
     $scope.profile = profileRouteResolver;
     $scope.logout = function () {
-        authFactory.delete({
-            action: 'token'
-        }, function () {
+        $resource('/oauth2/token').delete(function () {
             tokenFactory.setToken({});
             $location.path('/');
         });
@@ -130,7 +124,7 @@ module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $
     };
 
     $scope.connectSocialAccount = function (socialName) {
-        $resource('/auth/session').get(function (data) {
+        $resource('/api/session').get(function (data) {
             $window.open('/api/connect/' + socialName, 'target=_blank');
         });
     };

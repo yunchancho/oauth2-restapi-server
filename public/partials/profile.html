@@ -9,7 +9,9 @@
     <p>
         <strong>id</strong>: {{profile._id}}<br>
         <strong>email</strong>: {{profile.local.email}}<br>
+        <!--
         <strong>password</strong>: {{profile.local.password}}
+        -->
     </p>
     </div>
     <div class="btn-group">
@@ -21,8 +23,10 @@
     <h3><span class="fa fa-user"></span> Twitter Account</h3>
     <p ng-if="profile.twitter.token">
         <strong>id</strong>: {{profile.twitter.id}}<br>
+        <!--
         <strong>token</strong>: {{profile.twitter.token}}<br>
         <strong>tokenSecret</strong>: {{profile.twitter.tokenSecret}}<br>
+        -->
         <strong>display name</strong>: {{profile.twitter.displayName}}<br>
         <strong>photo</strong>: <img src={{profile.twitter.photo}} />
     </p>
@@ -36,8 +40,10 @@
     <h3><span class="fa fa-user"></span> Facebook Account</h3>
     <p ng-show="profile.facebook.token">
         <strong>id</strong>: {{profile.facebook.id}}<br>
+        <!--
         <strong>token</strong>: {{profile.facebook.token}}<br>
         <strong>refresh token</strong>: {{profile.facebook.refreshToken}}<br>
+        -->
         <strong>display name</strong>: {{profile.facebook.displayName}}<br>
         <strong>email</strong>: {{profile.facebook.email}}<br>
     </p>
@@ -51,8 +57,10 @@
     <h3><span class="fa fa-user"></span> Google+ Account</h3>
     <p ng-show="profile.google.token">
         <strong>id</strong>: {{profile.google.id}}<br>
+        <!--
         <strong>token</strong>: {{profile.google.token}}<br>
         <strong>refresh token</strong>: {{profile.google.refreshToken}}<br>
+        -->
         <strong>display name</strong>: {{profile.google.displayName}}<br>
         <strong>email</strong>: {{profile.google.email}}<br>
         <strong>photo</strong>: <img width=175 height=175 src={{profile.google.photo}} />
@@ -67,8 +75,10 @@
     <h3><span class="fa fa-user"></span> Yahoo! Account</h3>
     <p ng-show="profile.yahoo.token">
         <strong>id</strong>: {{profile.yahoo.id}}<br>
+        <!--
         <strong>token</strong>: {{profile.yahoo.token}}<br>
         <strong>refresh token</strong>: {{profile.yahoo.refreshToken}}<br>
+        -->
         <strong>display name</strong>: {{profile.yahoo.displayName}}<br>
     </p>
     <div class="btn-group">
@@ -81,8 +91,10 @@
     <h3><span class="fa fa-user"></span> LinkedIn Account</h3>
     <p ng-show="profile.linkedin.token">
         <strong>id</strong>: {{profile.linkedin.id}}<br>
+        <!--
         <strong>token</strong>: {{profile.linkedin.token}}<br>
         <strong>refresh token</strong>: {{profile.linkedin.refreshToken}}<br>
+        -->
         <strong>display name</strong>: {{profile.linkedin.displayName}}<br>
         <strong>email</strong>: {{profile.linkedin.email}}<br>
         <strong>industry</strong>: {{profile.linkedin.industry}}<br>
@@ -99,8 +111,10 @@
     <h3><span class="fa fa-user"></span> GitHub Account</h3>
     <p ng-show="profile.github.token">
         <strong>id</strong>: {{profile.github.id}}<br>
+        <!--
         <strong>token</strong>: {{profile.github.token}}<br>
         <strong>refresh token</strong>: {{profile.github.refreshToken}}<br>
+        -->
         <strong>display name</strong>: {{profile.github.displayName}}<br>
         <strong>email</strong>: {{profile.github.email}}<br>
         <strong>photo</strong>: <img width=175 height=175 src={{profile.github.photo}} /><br>
