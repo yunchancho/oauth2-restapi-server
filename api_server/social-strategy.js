@@ -38,28 +38,7 @@ var registerSocialAccount = function (name, info, loginedUser, done) {
                 changedUser = new User();
             }
 
-            switch (name) {
-                case 'twitter':
-                    changedUser.twitter = info;
-                    break;
-                case 'facebook':
-                    changedUser.facebook = info;
-                    break;
-                case 'google':
-                    changedUser.google = info;
-                    break;
-                case 'yahoo':
-                    changedUser.yahoo = info;
-                    break;
-                case 'linkedin':
-                    changedUser.linkedin = info;
-                    break;
-                case 'github':
-                    changedUser.github = info;
-                    break;
-                default:
-                    return done(null, false, { reason: 'unknown-social-app' });
-            }
+            eval('changedUser.' + name + ' = info');
             changedUser.save(function (err) {
                 if (err) {
                     console.error(err);
