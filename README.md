@@ -1,10 +1,12 @@
 oauth2-restapi-server
 =============
 
+## Introduction
 `oauth2-restapi-server` consists of oauth2 provider and api provider. As oauth2 provider, it provides issuing, validating and destroying oauth2 based token. As api provider, it provides responding to RESTful API requests from its clients. Every RESTful APIs are requested with access token issued by this oauth2 provider. `oauth2-restapi-server` provides its client as 1st party app with signup and login features using social accounts, so that the client can access resources of this api provider with an access token issued by this oauth2 provider. Additionally `oauth2-restapi-server` provides also signup and login features for local account. So 1st party app can access some resources using access token like case of social accounts. `oauth2-restapi-server` works on [node.js](http://nodejs.org) with [passport](http://github.com/jaredhanson/passport) and [oauth2orize](http://github.com/jaredhanson/oauth2orize). This repository also provides 1st party app(frontend) based on [angular.js](http://angularjs.org). You would understand `oauth2-restapi-server` using this 1st party app. `oauth2-restapi-server` supports for an user to signup using the following social accounts. Once a client gets an access token using social accounts or local account, so that it can call REST apis with the access token to access some resources like user profile.
 
  - Twitter (OAuth1.0A), Facebook (OAuth2), Google+ (OAuth2), Yahoo! (OAuth2), LinkedIn (OAuth2), GitHub (OAuth2)
 
+## Features
 `oauth2-restapi-server` provides the followings
   - Access token for 1st party app and 3rd party apps  
     1st party app (default frontend of `oauth2-restapi-server`) doesn't need to exchange specific code with its backend server to get access token,
