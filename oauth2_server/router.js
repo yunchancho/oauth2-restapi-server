@@ -26,6 +26,7 @@ var initialize = function (router) {
 var setPassportStrategy = function () {
     // our oauth server recieves client credentials for only two grant types. 
     //  * Authorization Code grant type
+    //  * Resource Owner Credentials Password type
     //  * Client Credential grant type
     // because this request will be done by backend server of 3rd party app which can keep client secret securely.
     // To get access token, backend server of 3rd party app must request grant based on 'Authorization Basic' of http header which include client id and secret
@@ -33,12 +34,23 @@ var setPassportStrategy = function () {
         passReqToCallback: true
     }, function (req, clientId, clientSecret, done) {
         console.log('enter basic strategy');
-        if (req.body.grant_type !==
-            predefine.oauth2.type.authorizationCode.name) {
+        if (!req.body.grant_type) {
             var error = new oauth2orize.TokenError(
-                'This client cannot be used for ' + req.body.grant_type,
-                'unsupported_grant_type');
+                'there is no grant_type field in body',
+                'invalid_request');
             return done(error);
+        }
+
+        switch (req.body.grant_type) {
+            case predefine.oauth2.type.authorizationCode.name:
+            case predefine.oauth2.type.password.name:
+            case predefine.oauth2.type.clientCredentials.name:
+                break;
+            default:
+                var error = new oauth2orize.TokenError(
+                    'This client cannot be used for ' + req.body.grant_type,
+                    'unsupported_grant_type');
+                return done(error);
         }
 
         // validate client credential
@@ -73,7 +85,6 @@ var setPassportStrategy = function () {
     }, function (req, clientId, done) {
         console.log('enter public client strategy');
         switch (req.body.grant_type) {
-            case predefine.oauth2.type.password.name:
             case predefine.oauth2.type.clientCredentials.name:
                 OauthClient.findOne({
                     clientId: req.body.client_id 

@@ -2,13 +2,13 @@
 
 var module = angular.module('myApp.controllers', []);
 
-module.controller('LoginCtrl', function($scope, $rootScope, $location, $window,$resource, authFactory, tokenFactory, redirectFactory) {
+module.controller('LoginCtrl', function($scope, $rootScope, $location, $window,$resource, authFactory, tokenFactory, redirectFactory, oauth2serverFactory) {
     $scope.loadingView = true;
     $scope.alertMessage = null;
     $scope.loginLocalAccount = function (credentials) {
-        $resource('/oauth2/token').save({}, {
+        console.log('start login!!!');
+        oauth2serverFactory.post({}, {
             grant_type : "password",
-            client_id : "tEYQAFiAAmLrS2Dl",
             username : $scope.credentials.email,
             password : $scope.credentials.password
         }, function (response) {
@@ -39,9 +39,8 @@ module.controller('LoginCtrl', function($scope, $rootScope, $location, $window,$
 
     $rootScope.$on('social-login:success', function (event, data) {
         console.log('social login success: ' + data.name);
-        $resource('/oauth2/token').save({}, {
+        oauth2serverFactory.post({}, {
             grant_type : "password",
-            client_id : "tEYQAFiAAmLrS2Dl",
             username : data.name,
             password : data.token
         }, function (response) {
@@ -109,11 +108,11 @@ module.controller('SignupCtrl', function($scope, $location, $resource, authFacto
     };
 });
 
-module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $location, $resource, authFactory, tokenFactory, profileFactory, profileRouteResolver) {
+module.controller('ProfileCtrl', function($scope, $rootScope, $route, $window, $location, $resource, authFactory, tokenFactory, profileFactory, oauth2serverFactory, profileRouteResolver) {
     $scope.alertMessage = null;
     $scope.profile = profileRouteResolver;
     $scope.logout = function () {
-        $resource('/oauth2/token').delete(function () {
+        oauth2serverFactory.destroy(function () {
             tokenFactory.setToken({});
             $location.path('/');
         });
