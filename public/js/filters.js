@@ -2,9 +2,17 @@
 
 /* Filters */
 
-angular.module('myApp.filters', []).
-  filter('interpolate', ['version', function(version) {
+var module = angular.module('myApp.filters', []);
+
+module.filter('interpolate', ['version', function(version) {
     return function(text) {
       return String(text).replace(/\%VERSION\%/mg, version);
     };
-  }]);
+  }]
+);
+
+module.filter('reverse', function () {
+    return function (items) {
+        return items.slice().reverse();
+    };
+});

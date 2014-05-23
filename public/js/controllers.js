@@ -2,6 +2,29 @@
 
 var module = angular.module('myApp.controllers', []);
 
+module.controller('MainCtrl', function($scope) {
+    // add status 
+    console.log('main control');
+    $scope.items = [ 
+        { content: 'What a beatiful world', created: Date.now() },
+        { content: 'What are you doing now?!', created: Date.now() },
+        { content: 'I hope to go Hawaii', created: Date.now() }
+    ];
+    $scope.addItem = function (content) {
+        console.log('add new item');
+        $scope.items.push({ content: content, created: Date.now() }); 
+    };
+});
+
+module.controller('LogoutCtrl', function ($scope, $location, oauth2serverFactory, tokenFactory) {
+    $scope.logout = function () {
+        oauth2serverFactory.destroy(function () {
+            tokenFactory.setToken({});
+            $location.path('/');
+        });
+    };
+});
+
 module.controller('LoginCtrl', function($scope, $rootScope, $location, $window,$resource, authFactory, tokenFactory, redirectFactory, oauth2serverFactory) {
     $scope.loadingView = true;
     $scope.alertMessage = null;

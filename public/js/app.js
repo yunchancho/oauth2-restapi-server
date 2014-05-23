@@ -11,9 +11,18 @@ var app = angular.module('myApp', [
 
 app.config(function($routeProvider) {
       $routeProvider
+      .when('/main', {
+          templateUrl: 'partials/main.html',
+          controller: 'MainCtrl',
+          authenticate: true
+      })
       .when('/login', {
           templateUrl: 'partials/login.html',
           controller: 'LoginCtrl'
+      })
+      .when('/logout', {
+          templateUrl: 'partials/logout.html',
+          controller: 'LogoutCtrl'
       })
       .when('/signup', {
           templateUrl: 'partials/signup.html',
@@ -35,7 +44,7 @@ app.config(function($routeProvider) {
           authenticate: true
       })
       .otherwise({
-          redirectTo: '/profile'
+          redirectTo: '/main'
       });
       
       //$locationProvider.html5Mode(true);

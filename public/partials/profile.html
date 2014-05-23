@@ -1,9 +1,16 @@
+<div class="container col-lg-offset-2 col-lg-8">
+<div class="page-header">
+      <h1>WELCOME <small>1ST PARTY CLIENT FOR TEST</small></h1>
+</div>
+<ul class="nav nav-tabs">
+    <li><a href="#/main">Home</a></li>
+    <li class="active"><a href="#/profile">Profile</a></li>
+    <li><a href='#/logout'>Logout</a></li>
+</ul>
+<hr>
 <div class="container">
-    <h1> My Profile </h1>
-    <a class="btn btn-default btn-sm" ng-click="logout()">Logout</a>
     <div class="alert alert-danger animate-hide" ng-show="alertMessage">{{alertMessage}}</div>
     <!-- local account -->
-    <hr>
     <h3><span class="fa fa-user"></span> Local Account</h3>
     <div ng-show="profile.local.email">
     <p>
@@ -125,4 +132,6 @@
         <a ng-click="connectSocialAccount('github')" class="btn btn-default" ng-hide="profile.github.token">Connect with GitHub</a>
     </div>
     <br /><br />
+</div>
+
 </div>

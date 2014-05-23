@@ -1,47 +1,58 @@
 <!doctype html>
-<div class="container">
-    <form class="form-signin" role="form" ng-submit="loginLocalAccount(credentials)" novalidate> 
-        <h2 class="form-signin-heading">Please login with local account</h2>
-        <div class="alert alert-danger animate-hide" ng-show="alertMessage">{{alertMessage}}</div>
-        <input type="email" class="form-control" ng-model="credentials.email" placeholder="Email address" required>
-        <input type="password" class="form-control" ng-model="credentials.password" placeholder="Password" required>
-        <button class="btn btn-lg btn-default btn-block" type="submit">Log In</button>
-    </form>
+<div class="container col-lg-offset-2 col-lg-8">
+<h3 class="text-primary text-center">1ST PARTY CLIENT</h3>
 <hr>
-</div>
-<div class="container">
-    <h2 class="form-signin-heading">Or, login with social account</h2>
-    <div class="btn-group">
-        <a class='btn btn-info disabled'><i class="fa fa-twitter" style="width:16px; height:17px"></i></a>
-        <a class='btn btn-info ' ng-click="loginSocialAccount('twitter')" style="width:12em"> Sign in with Twitter</a>
-    </div> 
-    <div class="btn-group">
-        <a class='btn btn-primary disabled'><i class="fa fa-facebook" style="width:16px; height:17px"></i></a>
-        <a class='btn btn-primary ' ng-click="loginSocialAccount('facebook')" style="width:12em"> Sign in with Facebook</a>
-    </div>    
-    <div class="btn-group">
-        <a class='btn btn-danger disabled'><i class="fa fa-google-plus" style="width:16px; height:17px"></i></a>
-        <a class='btn btn-danger' ng-click="loginSocialAccount('google')"  style="width:12em;"> Sign in with Google</a>
+<!-- local login / signup form -->
+<form class="form-horizontal" role="form" ng-submit="loginLocalAccount(credentials)" novalidate> 
+    <div class="alert alert-danger animate-hide" ng-show="alertMessage">{{alertMessage}}</div>
+    <div class="form-group">
+        <label for='inputEmail' class='col-xs-3 col-sm-2 contorl-label text-right'>Email</label>
+        <div class='col-xs-9 col-sm-10'>
+            <input type='email' class='form-control' id='inputEmail' ng-model="credentials.email" placeholder='your email address' required>
+        </div>
     </div>
-    <div class="btn-group">
-        <a class='btn btn-default disabled'><i class="fa fa-yahoo!" style="width:16px; height:17px"></i></a>
-        <a class='btn btn-default' ng-click="loginSocialAccount('yahoo')" style="width:12em;"> Sign in with Yahoo!</a>
+    <div class="form-group">
+        <label for='inputPassword' class='col-xs-3 col-sm-2 contorl-label  text-right'>Password</label>
+        <div class='col-xs-9 col-sm-10'>
+            <input type='password' class='form-control' id='inputPassword'ng-model="credentials.password" placeholder='your password' required>
+        </div>
     </div>
+    <div class="form-group">
+        <div class='col-xs-offset-3 col-xs-9 col-sm-offset-2 col-sm-5'>
+            <button class="btn btn-default" type="submit" style='width:100%;'>Log In</button>
+        </div>
+        <div class='col-xs-offset-3 col-xs-9 col-sm-offset-0 col-sm-5'>
+            <a href="#/signup" class="btn btn-default" style='width:100%;'>Sign Up</a>
+        </div>
+    </div>
+</form>
+<hr>
 
-    <br/><br/>
+<!-- social login -->
+<div class="btn-group col-xs-12 col-sm-6 col-md-4">
+    <a class='btn btn-info disabled'><i class="fa fa-twitter" style="width:16px;"></i></a>
+    <a class='btn btn-info ' ng-click="loginSocialAccount('twitter')" style="width:14em;">Login with Twitter</a>
+</div> 
+<div class="btn-group col-xs-12 col-sm-6 col-md-4">
+    <a class='btn btn-primary disabled'><i class="fa fa-facebook" style="width:16px;"></i></a>
+    <a class='btn btn-primary ' ng-click="loginSocialAccount('facebook')"  style="width:14em;">Login with Facebook</a>
+</div>    
+<div class="btn-group col-xs-12 col-sm-6 col-md-4">
+    <a class='btn btn-danger disabled'><i class="fa fa-google-plus" style="width:16px;"></i></a>
+    <a class='btn btn-danger' ng-click="loginSocialAccount('google')" style="width:14em;"> Login with Google</a>
+</div>
+<div class="btn-group col-xs-12 col-sm-6 col-md-4">
+    <a class='btn btn-default disabled'><i class="fa fa-yahoo!" style="width:16px;"></i></a>
+    <a class='btn btn-default' ng-click="loginSocialAccount('yahoo')"  style="width:14em;"> Login with Yahoo!</a>
+</div>
+<div class="btn-group col-xs-12 col-sm-6 col-md-4">
+    <a class='btn btn-default disabled'><i class="fa fa-linkedin" style="width:16px;"></i></a>
+    <a class='btn btn-default' ng-click="loginSocialAccount('linkedin')"  style="width:14em;"> Login with LinkedIn</a>
+</div>
+<div class="btn-group col-xs-12 col-sm-6 col-md-4">
+    <a class='btn btn-default disabled'><i class="fa fa-github" style="width:16px;"></i></a>
+    <a class='btn btn-default' ng-click="loginSocialAccount('github')" style="width:14em;"> Login with github</a>
+</div>
+<hr>
 
-    <div class="btn-group">
-        <a class='btn btn-default disabled'><i class="fa fa-linkedin" style="width:16px; height:17px"></i></a>
-        <a class='btn btn-default' ng-click="loginSocialAccount('linkedin')" style="width:12em;"> Sign in with LinkedIn</a>
-    </div>
-    <div class="btn-group">
-        <a class='btn btn-default disabled'><i class="fa fa-github" style="width:16px; height:17px"></i></a>
-        <a class='btn btn-default' ng-click="loginSocialAccount('github')" style="width:12em;"> Sign in with github</a>
-    </div>
 </div>
-<div class="container">
-    <hr>
-    <h2 class="form-signin-heading">Or, sign up new account</h2>
-    <a href="#/signup" class="btn btn-default">Sign Up</a>
-</div>
-<br/><br/>
