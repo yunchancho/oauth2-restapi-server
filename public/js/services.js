@@ -4,6 +4,31 @@ var module = angular.module('myApp.services', ['ngResource']);
 
 module.value('version', '0.1');
 
+module.factory('itemFactory', function ($resource) {
+    var item = $resource('/api/item/:id',
+        {
+            id: '@id'
+        }, {
+            list: {
+                method: 'GET',
+                isArray: true
+            },
+            add: {
+                method: 'POST',
+                isArray: false
+            },
+            delete: {
+                method: 'DELETE',
+                isArray: false
+            },
+            update: {
+                method: 'PULL',
+                isArray: false
+            }
+        });
+    return item;
+});
+
 module.factory('authFactory', function ($resource) {
     return $resource('/auth/:action/:social', {
         action: '@action',

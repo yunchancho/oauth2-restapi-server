@@ -12,7 +12,13 @@ module.controller('MainCtrl', function($scope) {
     ];
     $scope.addItem = function (content) {
         console.log('add new item');
-        $scope.items.push({ content: content, created: Date.now() }); 
+        itemFactory.add({}, {
+            content: content
+        }, function (response) {
+            console.log('success to add new item');
+        });
+        // Just for test 
+        //$scope.items.push({ content: content, created: Date.now() }); 
     };
 });
 

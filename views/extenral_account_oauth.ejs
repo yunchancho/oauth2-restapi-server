@@ -5,18 +5,26 @@
 </head>
 <body>
 <script type="text/javascript">
+    var type = '<%= type %>';
+    var state = '<%= state %>';
+    var data = JSON.parse('<%-JSON.stringify(data)%>');
+
+    function getResult() {
+        return { 
+            type: type,
+            state: state,
+            data: data
+        };
+    };
+
     if (window.opener) {
         window.opener.focus();
 
-        var type = '<%= type %>';
-        var state = '<%= state %>';
-        var data = JSON.parse('<%-JSON.stringify(data)%>');
-        console.log(data);
         if (window.opener.authState) {
             window.opener.authState(type, state, data); 
         }
+        window.close();
     }
-    window.close();
 </script>
 </body>
 </html>
