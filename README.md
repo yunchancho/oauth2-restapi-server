@@ -184,11 +184,11 @@ Clients MUST set 'Authorization' http header field with its access token
     [
     {
         "modifiedTime": 1401708727148,
-            "createdTime": 1401708727148,
-            "content": "hello, I am yunchan. (modified version)",
-            "userId": "53892ee09d562cf45ad31e56",
-            "_id": "538c60b7f3eac30f6a3fa146",
-            "__v": 0
+        "createdTime": 1401708727148,
+        "content": "hello, I am yunchan. (modified version)",
+        "userId": "53892ee09d562cf45ad31e56",
+        "_id": "538c60b7f3eac30f6a3fa146",
+        "__v": 0
     },
     {
         "modifiedTime": 1401708763182,
@@ -207,11 +207,11 @@ Clients MUST set 'Authorization' http header field with its access token
 ``` javascript
     {
         "modifiedTime": 1401708727148,
-            "createdTime": 1401708727148,
-            "content": "hello, I am yunchan. (modified version)",
-            "userId": "53892ee09d562cf45ad31e56",
-            "_id": "538c60b7f3eac30f6a3fa146",
-            "__v": 0
+        "createdTime": 1401708727148,
+        "content": "hello, I am yunchan. (modified version)",
+        "userId": "53892ee09d562cf45ad31e56",
+        "_id": "538c60b7f3eac30f6a3fa146",
+        "__v": 0
     }
 ```
 
@@ -223,7 +223,7 @@ Clients MUST set 'Authorization' http header field with its access token
 - description: updating exisiting a wishlist of requesting user
 - `:id` means existing wish's identifier created by server
 - required field in http request: 
-  `content`: string of wish that client wants to create newly
+  - `content`: string of wish that client wants to create newly
 - if request is successful, http status 200 is sent
 
 ### /api/wish/:id (DELETE)
