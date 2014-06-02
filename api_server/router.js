@@ -30,6 +30,7 @@ var setApiRoutes = function (router) {
     require('./api/social-login')(router);
     require('./api/connect')(router);
     require('./api/profile')(router);
+    require('./api/wish')(router);
 };
 
 module.exports.initialize = initialize;

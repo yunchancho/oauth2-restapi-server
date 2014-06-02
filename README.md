@@ -89,7 +89,7 @@ Currently `oauth2-restapi-server` doesn't use `scope` and `state` fields of OAut
 every fields speicified as `REQUIRED` are requested or response in http header or body.
 Please refer OAuth2 specification about that.
 
-### /oauth2/authorize
+### /oauth2/authorize (GET)
 - description: request authorization of 3rd party app
 - prerequisites: frontend MUST be logined using user's credetial
 - required field in http request: 
@@ -97,14 +97,14 @@ Please refer OAuth2 specification about that.
   - Implicit Grant: http://tools.ietf.org/html/rfc6749#section-4.2.1
 - response: html page for user to grant `oauth2-restapi-server` app
 
-### /oauth2/authorize/decision
+### /oauth2/authorize/decision (POST)
 - description: pass user's grant (allow or deny). This API is called from html page recieved due to /auth/authorize
 - required field in http request: transaction_id, allow (or deny) field
 - response: 
   - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.2 
   - Implicit Grant: http://tools.ietf.org/html/rfc6749#section-4.2.2
 
-### /oauth2/token
+### /oauth2/token (POST)
 - description: request issuing access token.  
 - required field in http request: 
   - Authorization Code Grant: http://tools.ietf.org/html/rfc6749#section-4.1.3
@@ -133,19 +133,19 @@ Please refer OAuth2 specification about that.
 
 ## API Usage for login signup regarding local account 
 These would be only used by 1st party app or authorization page
-### /auth/login
+### /auth/login (POST)
 This would be only used by authorization page for oauth2 
-### /auth/logout
+### /auth/logout (GET)
 This would be only used by authorization page for oauth2 
-### /auth/login/:socialapp
+### /auth/login/:socialapp (GET)
 This would be used by 1st party app
-### /auth/signup
+### /auth/signup (POST)
 This would be used by 1st party app
 
 ## REST API Usage for 1st party app with access token
 These would be only used by 1st party app authorized with 'Resource Owner Password' grant type
 Later, use of REST API will be limited by 'scope' of issued access token.
-### /api/profile
+### /api/profile (GET)
 - description: request profile data of user 
 - prerequisites: frontend MUST have access token issued by backend server
 - required field in http request:
@@ -168,14 +168,68 @@ Later, use of REST API will be limited by 'scope' of issued access token.
         }
     }
 ```
-### /api/session
-### /api/connect/local
-### /api/disconnect/local
-### /api/connect/:socialapp
-### /api/disconnect/:socialapp
+### /api/session (GET)
+### /api/connect/local (GET)
+### /api/disconnect/local (GET)
+### /api/connect/:socialapp (GET)
+### /api/disconnect/:socialapp (GET)
 
 ## REST API Usage for 3rd party app with access token
-not yet :)
+Clients MUST set 'Authorization' http header field with its access token
+
+### /api/wish (GET)
+- description: getting full list of requsting user as json array
+- response body includes profile of requested user
+``` javascript
+    [
+    {
+        "modifiedTime": 1401708727148,
+            "createdTime": 1401708727148,
+            "content": "hello, I am yunchan. (modified version)",
+            "userId": "53892ee09d562cf45ad31e56",
+            "_id": "538c60b7f3eac30f6a3fa146",
+            "__v": 0
+    },
+    {
+        "modifiedTime": 1401708763182,
+        "createdTime": 1401708763182,
+        "content": "I want to go Hawaii again",
+        "userId": "53892ee09d562cf45ad31e56",
+        "_id": "538c60dbf3eac30f6a3fa148",
+        "__v": 0
+    }
+    ]
+```
+
+### /api/wish/:id (GET)
+- description: getting only one of `:id` among wishlist of requsting user
+- response body includes profile of requested user
+``` javascript
+    {
+        "modifiedTime": 1401708727148,
+            "createdTime": 1401708727148,
+            "content": "hello, I am yunchan. (modified version)",
+            "userId": "53892ee09d562cf45ad31e56",
+            "_id": "538c60b7f3eac30f6a3fa146",
+            "__v": 0
+    }
+```
+
+### /api/wish (POST)
+- description: creating new wish of requesting user
+- if request is successful, http status 200 is sent
+
+### /api/wish/:id (PUT)
+- description: updating exisiting a wishlist of requesting user
+- `:id` means existing wish's identifier created by server
+- required field in http request: 
+  `content`: string of wish that client wants to create newly
+- if request is successful, http status 200 is sent
+
+### /api/wish/:id (DELETE)
+- description: removing existing a wishlist of requesting user
+- `:id` means existing wish's identifier created by server
+- if request is successful, http status 200 is sent
 
 ## Frontends for test these APIs
 Currently two frontends are available.
