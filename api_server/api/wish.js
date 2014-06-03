@@ -58,7 +58,8 @@ var setRouter = function (router) {
             newWish.content = req.body.content;
             newWish.save(function (err) {
                 if (err) throw err;
-                return res.send(200);
+                console.log(newWish);
+                return res.json(newWish);
             });
         });
 
