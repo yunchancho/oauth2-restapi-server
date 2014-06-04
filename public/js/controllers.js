@@ -20,7 +20,8 @@ module.controller('MainCtrl', function($scope, wishListFactory, wishApiFactory, 
             function (response) {
                 console.log('success to update a wish');
                 // FIXME this code doesn't apply changed value into ng-model
-                $scope.wishList[$scope.editFlag - 1] = response;
+                var index = $scope.wishList.length - $scope.editFlag;
+                $scope.wishList[index] = response;
                 $scope.editFlag = null;
         });
 
@@ -36,7 +37,7 @@ module.controller('MainCtrl', function($scope, wishListFactory, wishApiFactory, 
     };
     $scope.enterEditMode = function (index, id, content) {
         console.log('edit index: ' + index);
-        $scope.editFlag = index + 1;
+        $scope.editFlag = Number(index) + 1;
         $scope.updatedId = id;
         $scope.updatedContent = content;
     };

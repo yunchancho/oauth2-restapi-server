@@ -81,7 +81,7 @@ var setRouter = function (router) {
                     wish.content = req.body.content;
                     wish.save(function (err) {
                         if (err) throw err;
-                        return res.send(200);
+                        return res.json(wish);
                     });
                 }
             });
